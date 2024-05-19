@@ -28,7 +28,7 @@ export const authProvider: AuthProvider = {
                         });
                         return {
                             success: true,
-                            redirectTo: "/video",
+                            redirectTo: "/login",
                         };
                     }
                 })
@@ -63,7 +63,7 @@ export const authProvider: AuthProvider = {
             .then(function (response) {
                 return {
                     success: true,
-                    redirectTo: "/login",
+                    redirectTo: "/",
                 };
             })
             .catch(function (error) {

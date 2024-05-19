@@ -30,7 +30,7 @@ export default async function RootLayout({
     const authToken = await authProviderServer.getIdentity();
 
     return (
-        <html lang="ko" suppressHydrationWarning>
+        <html lang="ko">
             <body>
                 <Suspense>
                     <RefineKbarProvider>
@@ -48,7 +48,7 @@ export default async function RootLayout({
                                             {
                                                 name: "video",
                                                 list: "/video",
-                                                create: "/video/create",
+                                                //create: "/video/create",
                                                 edit: "/video/edit/:id",
                                                 show: "/video/show/:id",
                                                 meta: {
@@ -61,11 +61,11 @@ export default async function RootLayout({
                                                 },
                                             },
                                             {
-                                                name: "categories",
-                                                list: "/categories",
-                                                create: "/categories/create",
-                                                edit: "/categories/edit/:id",
-                                                show: "/categories/show/:id",
+                                                name: "category",
+                                                list: "/video/category",
+                                                create: "/video/category/create",
+                                                edit: "/video/category/edit/:id",
+                                                show: "/video/category/show/:id",
                                                 meta: {
                                                     canDelete: true,
                                                     headers: {

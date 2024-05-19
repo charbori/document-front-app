@@ -11,14 +11,38 @@ import {
     ShowButton,
     useDataGrid,
 } from "@refinedev/mui";
+import { useModalForm } from "@refinedev/react-hook-form";
 import Cookies from "js-cookie";
 
 import React from "react";
+import { CreatePostModal } from "../../components/createPostModal";
+
+type IVideo = {
+    defaultMode?: string;
+};
 
 export default function BlogPostList() {
     const { dataGridProps } = useDataGrid({
         syncWithLocation: true,
     });
+
+    const createModalFormProps = useModalForm<IVideo>({
+        refineCoreProps: { action: "create" },
+        syncWithLocation: true,
+    });
+
+    const {
+        modal: { show: showCreateModal },
+    } = createModalFormProps;
+
+    const editModalFormProps = useModalForm<IVideo>({
+        refineCoreProps: { action: "edit" },
+        syncWithLocation: true,
+    });
+
+    const {
+        modal: { show: showEditModal },
+    } = editModalFormProps;
 
     const { data: categoryData, isLoading: categoryIsLoading } = useMany({
         resource: "video",
@@ -81,12 +105,6 @@ export default function BlogPostList() {
                 },
             },
             {
-                field: "status",
-                flex: 1,
-                headerName: "Status",
-                minWidth: 200,
-            },
-            {
                 field: "createdAt",
                 flex: 1,
                 headerName: "Created at",
@@ -117,8 +135,11 @@ export default function BlogPostList() {
     );
 
     return (
-        <List>
-            <DataGrid {...dataGridProps} columns={columns} autoHeight />
-        </List>
+        <>
+            <List createButtonProps={{ onClick: () => showCreateModal() }}>
+                <DataGrid {...dataGridProps} columns={columns} autoHeight />
+            </List>
+            <CreatePostModal {...createModalFormProps} />
+        </>
     );
 }
