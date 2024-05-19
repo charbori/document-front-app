@@ -14,8 +14,7 @@ import { useEffect, useState } from "react";
 import { useTus } from "use-tus";
 
 const TUS_DEMO_ENDPOINT = "http://172.30.1.199:8080/api/content/tus";
-const CONTENT_METADATA_ENDPOINT =
-    "http://172.30.1.199:8080/api/content/metadata";
+const CONTENT_METADATA_ENDPOINT = "http://172.30.1.199:8080/api/content";
 
 const TusUploader = ({
     uploadIdx,

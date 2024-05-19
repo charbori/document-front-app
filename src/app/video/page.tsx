@@ -5,7 +5,6 @@ import { useMany } from "@refinedev/core";
 import {
     DateField,
     DeleteButton,
-    EditButton,
     List,
     MarkdownField,
     ShowButton,
@@ -120,7 +119,7 @@ export default function BlogPostList() {
                 renderCell: function render({ row }) {
                     return (
                         <>
-                            <EditButton hideText recordItemId={row.id} />
+                            {/* <EditButton hideText recordItemId={row.id} /> */}
                             <ShowButton hideText recordItemId={row.id} />
                             <DeleteButton hideText recordItemId={row.id} />
                         </>

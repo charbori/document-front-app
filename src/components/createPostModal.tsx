@@ -39,91 +39,11 @@ export const CreatePostModal: React.FC<
                     autoComplete="off"
                     sx={{ display: "flex", flexDirection: "column", m: 2 }}
                 >
-                    {
-                        // <TextField
-                        //     id="title"
-                        //     {...register("title", {
-                        //         required: "This field is required",
-                        //     })}
-                        //     error={!!errors.title}
-                        //     helperText={errors.title?.message}
-                        //     margin="normal"
-                        //     fullWidth
-                        //     label="Title"
-                        //     name="title"
-                        // />
-                        // <Controller
-                        //     control={control}
-                        //     name="status"
-                        //     rules={{ required: "This field is required" }}
-                        //     render={({ field }) => (
-                        //         <Autocomplete<IStatus>
-                        //             id="status"
-                        //             options={["published", "draft", "rejected"]}
-                        //             {...field}
-                        //             onChange={(_, value) => {
-                        //                 field.onChange(value);
-                        //             }}
-                        //             renderInput={(params) => (
-                        //                 <TextField
-                        //                     {...params}
-                        //                     label="Status"
-                        //                     margin="normal"
-                        //                     variant="outlined"
-                        //                     error={!!errors.status}
-                        //                     helperText={errors.status?.message}
-                        //                     required
-                        //                 />
-                        //             )}
-                        //         />
-                        //     )}
-                        // />
-                        // <Controller
-                        //     control={control}
-                        //     name="category"
-                        //     rules={{ required: "This field is required" }}
-                        //     render={({ field }) => (
-                        //         <Autocomplete
-                        //             id="category"
-                        //             {...autocompleteProps}
-                        //             {...field}
-                        //             onChange={(_, value) => {
-                        //                 field.onChange(value);
-                        //             }}
-                        //             getOptionLabel={(item) => {
-                        //                 return (
-                        //                     autocompleteProps?.options?.find(
-                        //                         (p) =>
-                        //                             p?.id?.toString() ===
-                        //                             item?.id?.toString()
-                        //                     )?.title ?? ""
-                        //                 );
-                        //             }}
-                        //             isOptionEqualToValue={(option, value) =>
-                        //                 value === undefined ||
-                        //                 option?.id?.toString() ===
-                        //                     (value?.id ?? value)?.toString()
-                        //             }
-                        //             renderInput={(params) => (
-                        //                 <TextField
-                        //                     {...params}
-                        //                     label="Category"
-                        //                     margin="normal"
-                        //                     variant="outlined"
-                        //                     error={!!errors.category}
-                        //                     helperText={errors.category?.message}
-                        //                 />
-                        //             )}
-                        //         />
-                        //     )}
-                        // />
-                    }
                     <VideoUplaoder />
                 </Box>
             </DialogContent>
             <DialogActions>
                 <Button onClick={close}>close</Button>
-                {/* <SaveButton {...saveButtonProps} /> */}
             </DialogActions>
         </Dialog>
     );
