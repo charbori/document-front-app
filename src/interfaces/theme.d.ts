@@ -33,3 +33,17 @@ export interface IPost {
 export type Nullable<T> = {
     [P in keyof T]: T[P] | null;
 };
+
+export type IVideo = {
+    id: string;
+    name: string;
+    description: string;
+    status: string;
+    role: string;
+    tag: string;
+    videoPath: string;
+    videoType: string;
+    thumbnailPath: string;
+    createdAt: string;
+    updatedAt: string;
+};

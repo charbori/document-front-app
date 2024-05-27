@@ -6,12 +6,12 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import { ChangeEvent, useRef, useState } from "react";
-import TusUploader from "./video-upload/TusUploader";
+import TusUploader from "../video-tus-upload/videoTusUploader";
 
 const Uploader = () => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [files, setFiles] = useState([]);
-    const [globalUploadIdx, setGlobalUploadIdx] = useState(0);
+    const [globalUploadIdx, setGlobalUploadIdx] = useState(1);
     const [globalUploadSign, setGlobalUploadSign] = useState(true);
     const [isUploadLoading, setIsUploadLoading] = useState(false);
 
@@ -94,7 +94,10 @@ const Uploader = () => {
     }
 
     return (
-        <div className="flex flex-col items-center w-full border shadow md:shadow-none md:border-none rounded-xl md:p-6">
+        <div
+            key={globalUploadIdx}
+            className="flex flex-col items-center w-full border shadow md:shadow-none md:border-none rounded-xl md:p-6"
+        >
             <div className="flex flex-col items-center w-full mt-8 md:flex-row gap-4">
                 {/* <BasicButton
                     title="Select an image"
@@ -131,8 +134,8 @@ const Uploader = () => {
                 isUploadValidFileType(fileVal) ? (
                     <Box sx={{ m: 2 }}>
                         <TusUploader
-                            key={key}
-                            uploadIdx={key}
+                            key={key + 1}
+                            uploadIdx={key + 1}
                             targetFile={fileVal}
                             globalUploadIdx={globalUploadIdx}
                             globalUploadSign={globalUploadSign}

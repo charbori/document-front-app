@@ -1,7 +1,7 @@
 "use client";
 
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { useMany } from "@refinedev/core";
+import { HttpError, useMany } from "@refinedev/core";
 import {
     DateField,
     DeleteButton,
@@ -14,11 +14,10 @@ import { useModalForm } from "@refinedev/react-hook-form";
 import Cookies from "js-cookie";
 
 import React from "react";
-import { CreatePostModal } from "../../components/createPostModal";
+import { VideoModal } from "../../components/video/videoUploaderModal";
 
-type IVideo = {
-    defaultMode?: string;
-};
+import { VideoDrawerShow } from "../../components/video/videoDrawer";
+import { IVideo, Nullable } from "../../interfaces/theme";
 
 export default function BlogPostList() {
     const { dataGridProps } = useDataGrid({
@@ -38,6 +37,21 @@ export default function BlogPostList() {
         refineCoreProps: { action: "edit" },
         syncWithLocation: true,
     });
+
+    const showDrawerFormProps = useModalForm<
+        IVideo,
+        HttpError,
+        Nullable<IVideo>
+    >({
+        refineCoreProps: {
+            action: "edit",
+        },
+        syncWithLocation: true,
+    });
+
+    const {
+        modal: { show: showCreateDrawer },
+    } = showDrawerFormProps;
 
     const {
         modal: { show: showEditModal },
@@ -74,6 +88,10 @@ export default function BlogPostList() {
             };
         },
     });
+
+    const handleRowClick: GridEventListener<"rowClick"> = (params) => {
+        showCreateDrawer(params.id);
+    };
 
     const columns = React.useMemo<GridColDef[]>(
         () => [
@@ -136,9 +154,15 @@ export default function BlogPostList() {
     return (
         <>
             <List createButtonProps={{ onClick: () => showCreateModal() }}>
-                <DataGrid {...dataGridProps} columns={columns} autoHeight />
+                <DataGrid
+                    {...dataGridProps}
+                    columns={columns}
+                    autoHeight
+                    onRowClick={handleRowClick}
+                />
             </List>
-            <CreatePostModal {...createModalFormProps} />
+            <VideoModal {...createModalFormProps} />
+            <VideoDrawerShow {...showDrawerFormProps} />
         </>
     );
 }

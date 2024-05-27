@@ -230,7 +230,10 @@ const TusUploader = ({
     };
 
     return (
-        <div className="flex flex-col items-center w-full border shadow md:shadow-none md:border-none rounded-xl md:p-6">
+        <div
+            key={uploadIdx}
+            className="flex flex-col items-center w-full border shadow md:shadow-none md:border-none rounded-xl md:p-6"
+        >
             <Stack spacing={4} direction="row">
                 {uploadedUrl && fileType == "photo" && (
                     // <div className="max-w-md max-h-fit flex md:flex-col items-center flex-1 mt-8">

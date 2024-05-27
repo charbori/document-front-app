@@ -1,15 +1,13 @@
 "use client";
 
 import { Stack, Typography } from "@mui/material";
-import { useOne, useShow } from "@refinedev/core";
+import { useShow } from "@refinedev/core";
 import {
     DateField,
-    MarkdownField,
     NumberField,
     Show,
     TextFieldComponent as TextField,
 } from "@refinedev/mui";
-import Cookies from "js-cookie";
 
 export default function BlogPostShow() {
     const { queryResult } = useShow({});
@@ -18,20 +16,7 @@ export default function BlogPostShow() {
 
     const record = data?.data;
 
-    const { data: categoryData, isLoading: categoryIsLoading } = useOne({
-        resource: "video",
-        id: record?.id || "",
-        queryOptions: {
-            enabled: !!record,
-        },
-        meta: {
-            headers: {
-                Authorization: "Bearer " + Cookies.get("auth"),
-            },
-        },
-    });
-    console.log("video show auth" + Cookies.get("auth"));
-
+    console.log(record);
     return (
         <Show isLoading={isLoading}>
             <Stack gap={1}>
@@ -41,23 +26,23 @@ export default function BlogPostShow() {
                 <NumberField value={record?.id ?? ""} />
 
                 <Typography variant="body1" fontWeight="bold">
-                    {"Title"}
+                    {"Name"}
                 </Typography>
-                <TextField value={record?.title} />
+                <TextField value={record?.name} />
 
                 <Typography variant="body1" fontWeight="bold">
-                    {"Content"}
+                    {"description"}
                 </Typography>
-                <MarkdownField value={record?.content} />
+                <TextField
+                    value={record?.description ? record?.description : "-"}
+                />
 
                 <Typography variant="body1" fontWeight="bold">
-                    {"Category"}
+                    {"type"}
                 </Typography>
-                {categoryIsLoading ? (
-                    <>Loading...</>
-                ) : (
-                    <>{categoryData?.data?.title}</>
-                )}
+                <TextField
+                    value={record?.videoType ? record?.videoType : "-"}
+                />
 
                 <Typography variant="body1" fontWeight="bold">
                     {"Status"}
@@ -65,9 +50,14 @@ export default function BlogPostShow() {
                 <TextField value={record?.status} />
 
                 <Typography variant="body1" fontWeight="bold">
-                    {"CreatedAt"}
+                    {"Created"}
                 </Typography>
                 <DateField value={record?.createdAt} />
+
+                <Typography variant="body1" fontWeight="bold">
+                    {"Updated"}
+                </Typography>
+                <DateField value={record?.updatedAt} />
             </Stack>
         </Show>
     );
