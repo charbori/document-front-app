@@ -1,6 +1,7 @@
 "use client";
 
-import { Stack, Typography } from "@mui/material";
+import { CardMedia, Stack, Typography } from "@mui/material";
+import Box from "@mui/material/Box";
 import { useShow } from "@refinedev/core";
 import {
     DateField,
@@ -8,18 +9,32 @@ import {
     Show,
     TextFieldComponent as TextField,
 } from "@refinedev/mui";
+import { videoStorageEndPoint } from "../../../../utils/common_var";
 
 export default function BlogPostShow() {
     const { queryResult } = useShow({});
-
     const { data, isLoading } = queryResult;
-
     const record = data?.data;
+    const usernamePath =
+        record?.user?.username != undefined
+            ? record?.user?.username.split("@")
+            : "";
 
-    console.log(record);
+    //todo <Box> video skeleton or loading
     return (
         <Show isLoading={isLoading}>
             <Stack gap={1}>
+                <Box sx={{ maxWidht: "100%", maxHeight: "100%" }}>
+                    <CardMedia
+                        component="iframe"
+                        sx={{
+                            maxWidht: "100%",
+                            maxHeight: "100%",
+                            minHeight: 300,
+                        }}
+                        src={`${videoStorageEndPoint}/video-manager/${usernamePath[0]}/${record?.name}`}
+                    ></CardMedia>
+                </Box>
                 <Typography variant="body1" fontWeight="bold">
                     {"ID"}
                 </Typography>

@@ -1,6 +1,9 @@
-import { Stack, Typography } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
+import { Button, CardMedia, Stack, Typography } from "@mui/material";
+import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
-import { HttpError, useParsed } from "@refinedev/core";
+import { HttpError, useBack, useGo, useParsed } from "@refinedev/core";
 import {
     DateField,
     NumberField,
@@ -9,19 +12,45 @@ import {
 } from "@refinedev/mui";
 import { UseModalFormReturnType } from "@refinedev/react-hook-form";
 import { IVideo, Nullable } from "../../interfaces/theme";
+import { videoStorageEndPoint } from "../../utils/common_var";
+const BackButton = () => {
+    const goBack = useBack();
+
+    return (
+        <Button onClick={goBack}>
+            <ArrowBackIcon />
+        </Button>
+    );
+};
+
+const ExpandButton = ({ videoId }) => {
+    const goTo = useGo();
+    return (
+        <Button
+            onClick={() => {
+                goTo({
+                    to: `/video/show/${videoId}`,
+                    query: {
+                        filters: [],
+                    },
+                    type: "push",
+                });
+            }}
+        >
+            <OpenInFullIcon />
+        </Button>
+    );
+};
 
 export const VideoDrawerShow: React.FC<
     UseModalFormReturnType<IVideo, HttpError, Nullable<IVideo>>
-> = ({
-    saveButtonProps,
-    refineCore: { queryResult },
-    modal: { show, visible, close },
-    register,
-    control,
-    formState: { errors },
-}) => {
+> = ({ refineCore: { queryResult }, modal: { visible, close } }) => {
     const { id } = useParsed();
     const record = queryResult?.data?.data;
+    const usernamePath =
+        record?.user?.username != undefined
+            ? record?.user?.username.split("@")
+            : "";
 
     return (
         <Drawer
@@ -30,8 +59,22 @@ export const VideoDrawerShow: React.FC<
             anchor="right"
             PaperProps={{ sx: { width: { sm: "50%", md: 500 } } }}
         >
-            <Show>
+            <Show
+                headerButtons={({ defaultButtons }) => (
+                    <>
+                        <ExpandButton videoId={record?.id} />
+                    </>
+                )}
+                goBack={<BackButton />}
+            >
                 <Stack gap={1}>
+                    <Box sx={{ maxWidht: "100%", maxHeight: "25%" }}>
+                        <CardMedia
+                            component="iframe"
+                            src={`${videoStorageEndPoint}/video-manager/${usernamePath[0]}/${record?.name}`}
+                        ></CardMedia>
+                    </Box>
+
                     <Typography variant="body1" fontWeight="bold">
                         {"ID"}
                     </Typography>
