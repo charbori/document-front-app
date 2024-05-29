@@ -26,8 +26,6 @@ export default function BlogPostList() {
     const { dataGridProps } = useDataGrid({
         syncWithLocation: true,
     });
-
-    console.log(dataGridProps);
     const createModalFormProps = useModalForm<IVideo>({
         refineCoreProps: { action: "create" },
         syncWithLocation: true,
