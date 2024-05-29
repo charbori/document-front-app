@@ -4,7 +4,7 @@ import { Button, CardMedia, Stack, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import Skeleton from "@mui/material/Skeleton";
-import { HttpError, useBack, useGo, useParsed } from "@refinedev/core";
+import { HttpError, useGo, useParsed } from "@refinedev/core";
 import {
     DateField,
     NumberField,
@@ -14,16 +14,6 @@ import {
 import { UseModalFormReturnType } from "@refinedev/react-hook-form";
 import { IVideo, Nullable } from "../../interfaces/theme";
 import { videoStorageEndPoint } from "../../utils/common_var";
-
-const BackButton = () => {
-    const goBack = useBack();
-
-    return (
-        <Button onClick={goBack}>
-            <ArrowBackIcon />
-        </Button>
-    );
-};
 
 const ExpandButton = ({ videoId }) => {
     const goTo = useGo();
@@ -67,7 +57,11 @@ export const VideoDrawerShow: React.FC<
                         <ExpandButton videoId={record?.id} />
                     </>
                 )}
-                goBack={<BackButton />}
+                goBack={
+                    <Button onClick={close}>
+                        <ArrowBackIcon />
+                    </Button>
+                }
             >
                 <Stack gap={1}>
                     <Box sx={{ maxWidht: "100%", maxHeight: "25%" }}>
