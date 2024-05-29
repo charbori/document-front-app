@@ -3,6 +3,7 @@ import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import { Button, CardMedia, Stack, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
+import Skeleton from "@mui/material/Skeleton";
 import { HttpError, useBack, useGo, useParsed } from "@refinedev/core";
 import {
     DateField,
@@ -13,6 +14,7 @@ import {
 import { UseModalFormReturnType } from "@refinedev/react-hook-form";
 import { IVideo, Nullable } from "../../interfaces/theme";
 import { videoStorageEndPoint } from "../../utils/common_var";
+
 const BackButton = () => {
     const goBack = useBack();
 
@@ -69,10 +71,14 @@ export const VideoDrawerShow: React.FC<
             >
                 <Stack gap={1}>
                     <Box sx={{ maxWidht: "100%", maxHeight: "25%" }}>
-                        <CardMedia
-                            component="iframe"
-                            src={`${videoStorageEndPoint}/video-manager/${usernamePath[0]}/${record?.name}`}
-                        ></CardMedia>
+                        {record?.name != undefined ? (
+                            <CardMedia
+                                component="iframe"
+                                src={`${videoStorageEndPoint}/video-manager/${usernamePath[0]}/${record?.name}`}
+                            ></CardMedia>
+                        ) : (
+                            <Skeleton variant="rectangular" height={200} />
+                        )}
                     </Box>
 
                     <Typography variant="body1" fontWeight="bold">

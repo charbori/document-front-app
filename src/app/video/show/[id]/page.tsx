@@ -2,6 +2,7 @@
 
 import { CardMedia, Stack, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
+import Skeleton from "@mui/material/Skeleton";
 import { useShow } from "@refinedev/core";
 import {
     DateField,
@@ -20,20 +21,35 @@ export default function BlogPostShow() {
             ? record?.user?.username.split("@")
             : "";
 
-    //todo <Box> video skeleton or loading
     return (
         <Show isLoading={isLoading}>
             <Stack gap={1}>
-                <Box sx={{ maxWidht: "100%", maxHeight: "100%" }}>
-                    <CardMedia
-                        component="iframe"
-                        sx={{
-                            maxWidht: "100%",
-                            maxHeight: "100%",
-                            minHeight: 300,
-                        }}
-                        src={`${videoStorageEndPoint}/video-manager/${usernamePath[0]}/${record?.name}`}
-                    ></CardMedia>
+                <Box sx={{ maxWidth: "100%", maxHeight: "100%" }}>
+                    {record?.name != undefined ? (
+                        <CardMedia
+                            component="iframe"
+                            sx={{
+                                maxWidht: "100%",
+                                maxHeight: "100%",
+                                minHeight: 300,
+                            }}
+                            src={`${videoStorageEndPoint}/video-manager/${usernamePath[0]}/${record?.name}`}
+                        ></CardMedia>
+                    ) : (
+                        <Box
+                            sx={{
+                                maxWidht: "100%",
+                                maxHeight: "100%",
+                                minHeight: 300,
+                            }}
+                        >
+                            <Skeleton
+                                variant="rectangular"
+                                width="100%"
+                                height={250}
+                            />
+                        </Box>
+                    )}
                 </Box>
                 <Typography variant="body1" fontWeight="bold">
                     {"ID"}

@@ -1,5 +1,7 @@
 "use client";
 
+import Skeleton from "@mui/material/Skeleton";
+import Typography from "@mui/material/Typography";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { HttpError, useMany } from "@refinedev/core";
 import {
@@ -20,10 +22,12 @@ import { VideoDrawerShow } from "../../components/video/videoDrawer";
 import { IVideo, Nullable } from "../../interfaces/theme";
 
 export default function BlogPostList() {
+    const [loading, setLoading] = React.useState(true);
     const { dataGridProps } = useDataGrid({
         syncWithLocation: true,
     });
 
+    console.log(dataGridProps);
     const createModalFormProps = useModalForm<IVideo>({
         refineCoreProps: { action: "create" },
         syncWithLocation: true,
@@ -154,12 +158,28 @@ export default function BlogPostList() {
     return (
         <>
             <List createButtonProps={{ onClick: () => showCreateModal() }}>
-                <DataGrid
-                    {...dataGridProps}
-                    columns={columns}
-                    autoHeight
-                    onRowClick={handleRowClick}
-                />
+                {dataGridProps?.loading == true ? (
+                    <>
+                        <Typography component="div" variant="h1">
+                            <Skeleton />
+                        </Typography>
+                        <Typography component="div" variant="h3">
+                            <Skeleton />
+                            <Skeleton animation="wave" />
+                            <Skeleton animation={false} />
+                            <Skeleton />
+                            <Skeleton animation="wave" />
+                            <Skeleton animation={false} />
+                        </Typography>
+                    </>
+                ) : (
+                    <DataGrid
+                        {...dataGridProps}
+                        columns={columns}
+                        autoHeight
+                        onRowClick={handleRowClick}
+                    />
+                )}
             </List>
             <VideoModal {...createModalFormProps} />
             <VideoDrawerShow {...showDrawerFormProps} />
