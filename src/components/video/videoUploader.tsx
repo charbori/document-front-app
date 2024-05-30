@@ -2,10 +2,13 @@
 
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import LoadingButton from "@mui/lab/LoadingButton";
+import { ThemeProvider } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import DialogContentText from "@mui/material/DialogContentText";
 import Stack from "@mui/material/Stack";
 import { ChangeEvent, useRef, useState } from "react";
+import uuid from "react-uuid";
 import TusUploader from "../video-tus-upload/videoTusUploader";
 
 const Uploader = () => {
@@ -130,21 +133,48 @@ const Uploader = () => {
                 onChange={handleOnSetMultiUploader}
                 ref={inputRef}
             />
-            {files.map((fileVal, key) =>
-                isUploadValidFileType(fileVal) ? (
-                    <Box sx={{ m: 2 }}>
-                        <TusUploader
-                            key={key + 1}
-                            uploadIdx={key + 1}
-                            targetFile={fileVal}
-                            globalUploadIdx={globalUploadIdx}
-                            globalUploadSign={globalUploadSign}
-                            increaseUploadIdx={increaseUploadIdx}
-                        />
-                    </Box>
-                ) : (
-                    ""
+            <DialogContentText sx={{ m: 2 }}>Upload Videos</DialogContentText>
+            {files.length > 0 ? (
+                files.map((fileVal, key) =>
+                    isUploadValidFileType(fileVal) ? (
+                        <Box sx={{ m: 2 }}>
+                            <TusUploader
+                                key={key + 1}
+                                uploadIdx={key + 1}
+                                targetFile={fileVal}
+                                globalUploadIdx={globalUploadIdx}
+                                globalUploadSign={globalUploadSign}
+                                increaseUploadIdx={increaseUploadIdx}
+                            />
+                        </Box>
+                    ) : (
+                        ""
+                    )
                 )
+            ) : (
+                <ThemeProvider
+                    key={uuid()}
+                    theme={{
+                        palette: {
+                            info: {
+                                main: "#eeeeee",
+                            },
+                        },
+                    }}
+                >
+                    {[1, 2, 3, 4, 5].map((element, index) => (
+                        <Box
+                            key={index}
+                            sx={{
+                                borderRadius: 1,
+                                bgcolor: "info.main",
+                                maxWidth: "100%",
+                                height: 30,
+                                m: 1,
+                            }}
+                        ></Box>
+                    ))}
+                </ThemeProvider>
             )}
         </div>
     );

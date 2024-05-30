@@ -91,8 +91,11 @@ export default function BlogPostList() {
         },
     });
 
-    const handleRowClick: GridEventListener<"rowClick"> = (params) => {
-        showCreateDrawer(params.id);
+    const modal_event_field_arr = ["id", "name", "description"];
+    const handleRowClick: GridEventListener<"cellClick"> = (params) => {
+        if (modal_event_field_arr.includes(params.field)) {
+            showCreateDrawer(params.id);
+        }
     };
 
     const columns = React.useMemo<GridColDef[]>(
@@ -175,7 +178,7 @@ export default function BlogPostList() {
                         {...dataGridProps}
                         columns={columns}
                         autoHeight
-                        onRowClick={handleRowClick}
+                        onCellClick={handleRowClick}
                     />
                 )}
             </List>

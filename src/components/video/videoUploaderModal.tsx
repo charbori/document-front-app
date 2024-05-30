@@ -1,13 +1,11 @@
-import { HttpError } from "@refinedev/core";
-import { useAutocomplete } from "@refinedev/mui";
-
-import { Box, ThemeProvider } from "@mui/material";
+import { Box } from "@mui/material";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import { HttpError } from "@refinedev/core";
+import { useAutocomplete } from "@refinedev/mui";
 import VideoUplaoder from "./videoUploader";
 
 import { UseModalFormReturnType } from "@refinedev/react-hook-form";
@@ -42,28 +40,6 @@ export const VideoModal: React.FC<
                 >
                     <VideoUplaoder />
                 </Box>
-                <ThemeProvider
-                    theme={{
-                        palette: {
-                            info: {
-                                main: "#eeeeee",
-                            },
-                        },
-                    }}
-                >
-                    <DialogContentText>Upload Videos</DialogContentText>
-                    {[1, 2, 3, 4, 5].map((element, index) => (
-                        <Box
-                            sx={{
-                                borderRadius: 1,
-                                bgcolor: "info.main",
-                                maxWidth: "100%",
-                                height: 30,
-                                m: 1,
-                            }}
-                        ></Box>
-                    ))}
-                </ThemeProvider>
             </DialogContent>
             <DialogActions>
                 <Button onClick={close}>close</Button>
