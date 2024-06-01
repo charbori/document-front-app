@@ -12,8 +12,8 @@ import { authProvider, authProviderServer } from "@providers/auth-provider";
 import { dataProvider } from "@providers/data-provider";
 
 export const metadata: Metadata = {
-    title: "VideoManagerApp",
-    description: "video manager app",
+    title: "kvi video manager",
+    description: "kvi video manager",
     icons: {
         icon: "/favicon.ico",
     },
