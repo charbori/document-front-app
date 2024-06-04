@@ -1,6 +1,5 @@
 "use client";
 import type { AuthProvider } from "@refinedev/core";
-import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import Cookies from "js-cookie";
 import {
@@ -26,10 +25,7 @@ export const authProvider: AuthProvider = {
                             expires: 30,
                             path: "/",
                         });
-                        return {
-                            success: true,
-                            redirectTo: "/login",
-                        };
+                        location.href = "/login";
                     }
                 })
                 .catch(function (error) {
@@ -63,7 +59,7 @@ export const authProvider: AuthProvider = {
             .then(function (response) {
                 return {
                     success: true,
-                    redirectTo: "/",
+                    redirectTo: "/login",
                 };
             })
             .catch(function (error) {
@@ -80,12 +76,12 @@ export const authProvider: AuthProvider = {
     check: async () => {
         const auth = Cookies.get("auth");
 
-        const { isLoading, error, data, isFetching } = useQuery({
-            queryKey: ["authToken"],
-            queryFn: () => {
-                return Cookies.get("auth");
-            },
-        });
+        // const { isLoading, error, data, isFetching } = useQuery({
+        //     queryKey: ["authToken"],
+        //     queryFn: () => {
+        //         return Cookies.get("auth");
+        //     },
+        // });
 
         if (auth) {
             return {
@@ -136,7 +132,7 @@ export const authProvider: AuthProvider = {
                 .then(function (response) {
                     return {
                         success: true,
-                        redirectTo: "/",
+                        redirectTo: "/login",
                     };
                 })
                 .catch(function (error) {

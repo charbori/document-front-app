@@ -137,7 +137,7 @@ const Uploader = () => {
             {files.length > 0 ? (
                 files.map((fileVal, key) =>
                     isUploadValidFileType(fileVal) ? (
-                        <Box sx={{ m: 2 }}>
+                        <Box sx={{ m: 2 }} key={uuid()}>
                             <TusUploader
                                 key={key + 1}
                                 uploadIdx={key + 1}

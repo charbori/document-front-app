@@ -12,9 +12,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 import { useTus } from "use-tus";
-
-const TUS_DEMO_ENDPOINT = "http://172.30.1.199:8080/api/content/tus";
-const CONTENT_METADATA_ENDPOINT = "http://172.30.1.199:8080/api/content";
+import { videoApiEndPoint, videoUploadEndPoint } from "../../utils/common_var";
 
 const TusUploader = ({
     uploadIdx,
@@ -63,7 +61,7 @@ const TusUploader = ({
             if (contentStatus == "WAIT") {
                 const response = await axios
                     .post(
-                        CONTENT_METADATA_ENDPOINT,
+                        videoApiEndPoint,
                         {
                             name: targetFile.name,
                             description: "",
@@ -88,7 +86,7 @@ const TusUploader = ({
             } else {
                 const response = await axios
                     .patch(
-                        CONTENT_METADATA_ENDPOINT + "/status",
+                        videoApiEndPoint + "/status",
                         {
                             name: targetFile.name,
                             status: contentStatus,
@@ -147,7 +145,7 @@ const TusUploader = ({
         setFileName(file.name);
 
         setUpload(file, {
-            endpoint: TUS_DEMO_ENDPOINT,
+            endpoint: videoUploadEndPoint,
             chunkSize: file.size / 10,
             metadata: {
                 filename: file.name,
@@ -163,10 +161,11 @@ const TusUploader = ({
                 );
             },
             onSuccess: (upload) => {
-                //setFileName(file.name);
                 if (file.type.substring(0, 5) == "image") {
                     setUploadedUrl(
-                        TUS_DEMO_ENDPOINT + "/" + encodeURIComponent(file.name)
+                        videoUploadEndPoint +
+                            "/" +
+                            encodeURIComponent(file.name)
                     );
                     setFileType("photo");
                 } else if (file.type.substring(0, 5) == "video") {

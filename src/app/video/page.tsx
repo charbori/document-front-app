@@ -84,7 +84,7 @@ export default function BlogPostList() {
         },
         errorNotification: (data, ids, resource) => {
             return {
-                message: `Something went wrong when getting ${data.id}`,
+                message: `Something went wrong when getting ${data}`,
                 description: "Error",
                 type: "error",
             };

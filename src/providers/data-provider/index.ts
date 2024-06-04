@@ -1,7 +1,9 @@
 "use client";
 
+import { videoApiEndPoint } from "../../utils/common_var";
+
 import dataProviderSimpleRest from "@refinedev/simple-rest";
 
-const API_URL = "http://172.30.1.199:8080/api/content";
+const API_URL = videoApiEndPoint;
 
 export const dataProvider = dataProviderSimpleRest(API_URL);
