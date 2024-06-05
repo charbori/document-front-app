@@ -26,6 +26,9 @@ export const authProvider: AuthProvider = {
                             path: "/",
                         });
                         location.href = "/login";
+                        return {
+                            success: true,
+                        };
                     }
                 })
                 .catch(function (error) {
@@ -208,5 +211,36 @@ export const authProvider: AuthProvider = {
                 };
             });
         return await response;
+    },
+    verificationUser: async ({ verificationCode }) => {
+        // const queryParameters = new URLSearchParams(window.location.search);
+        // const verificationCode = queryParameters.get("verificationCode");
+        // const response = await axios
+        //     .post(passwordApiEndPoint, {
+        //         password: password,
+        //         verificationCode: verificationCode,
+        //     })
+        //     .then(function (response) {
+        //         return {
+        //             success: true,
+        //             redirectTo: "/login",
+        //             successNotification: {
+        //                 message: "비밀번호 변경성공",
+        //                 description: "비밀번호 변경에 성공하였습니다.",
+        //             },
+        //         };
+        //     })
+        //     .catch(function (error) {
+        //         return {
+        //             success: false,
+        //             error: {
+        //                 name: "비밀번호 찾기실패",
+        //                 message: "계정이 올바르지 않습니다.",
+        //             },
+        //         };
+        //     });
+        // return await response;
+        console.log("test verification : " + verificationCode);
+        return;
     },
 };

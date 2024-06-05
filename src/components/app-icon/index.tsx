@@ -11,7 +11,7 @@ export const AppIcon = (props: SVGProps<SVGSVGElement>) => {
             y="0px"
             width="100%"
             viewBox="0 0 385 369"
-            enable-background="new 0 0 385 369"
+            enableBackground="new 0 0 385 369"
         >
             <path
                 fill="#FEFFFF"

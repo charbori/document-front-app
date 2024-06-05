@@ -6,6 +6,7 @@ const loginApiEndPoint = process.env.NEXT_PUBLIC_LOGIN_API_ENDPOINT;
 const videoUploadEndPoint = process.env.NEXT_PUBLIC_VIDEO_DEMO_ENDPOINT;
 const registerApiEndPoint = process.env.NEXT_PUBLIC_REGISTER_API_ENDPOINT;
 const passwordApiEndPoint = process.env.NEXT_PUBLIC_PASSWORD_API_ENDPOINT;
+const verificationEndPoint = process.env.NEXT_PUBLIC_VERIFICATION_API_ENDPOINT;
 
 export {
     authorizationKey,
@@ -13,6 +14,7 @@ export {
     loginApiEndPoint,
     passwordApiEndPoint,
     registerApiEndPoint,
+    verificationEndPoint,
     videoApiEndPoint,
     videoStorageEndPoint,
     videoUploadEndPoint,

@@ -24,4 +24,7 @@ export const authProviderServer: AuthBinding = {
                 : cookieStore.get("auth").value;
         return auth;
     },
+    verificationUser: async ({ verificationCode }) => {
+        console.log("test server verification : " + verificationCode);
+    },
 };
