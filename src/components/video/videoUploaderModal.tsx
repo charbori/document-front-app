@@ -10,10 +10,10 @@ import VideoUplaoder from "./videoUploader";
 
 import { UseModalFormReturnType } from "@refinedev/react-hook-form";
 
-import { IPost, IVideoCategory, Nullable } from "../../interfaces/theme";
+import { IVideo, IVideoCategory, Nullable } from "../../interfaces/theme";
 
 export const VideoModal: React.FC<
-    UseModalFormReturnType<IPost, HttpError, Nullable<IPost>>
+    UseModalFormReturnType<IVideo, HttpError, Nullable<IVideo>>
 > = ({
     saveButtonProps,
     modal: { visible, close, title },

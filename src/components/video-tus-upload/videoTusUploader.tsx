@@ -11,10 +11,19 @@ import Stack from "@mui/material/Stack";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
+import type { PreviousUpload, Upload } from "tus-js-client";
 import { useTus } from "use-tus";
 import { videoApiEndPoint, videoUploadEndPoint } from "../../utils/common_var";
 
-const TusUploader = ({
+interface TusUploaderProps {
+    uploadIdx: number;
+    targetFile: File;
+    globalUploadIdx: number;
+    globalUploadSign: boolean;
+    increaseUploadIdx(uploadVal: number): void;
+}
+
+const TusUploader: React.FC<TusUploaderProps> = ({
     uploadIdx,
     targetFile,
     globalUploadIdx,
@@ -35,7 +44,10 @@ const TusUploader = ({
     const [uploadStart, setUploadStart] = useState(0);
     const cookieData = Cookies.get("auth");
 
-    function askToResumeUpload(previousUploads, currentUpload) {
+    function askToResumeUpload(
+        previousUploads: PreviousUpload[],
+        currentUpload: Upload
+    ) {
         if (previousUploads.length === 0) return;
 
         let text =
@@ -46,8 +58,8 @@ const TusUploader = ({
         text +=
             "\nEnter the corresponding number to resume an upload or press Cancel to start a new upload";
 
-        const answer = prompt(text);
-        const index = parseInt(answer, 10);
+        const answer: string | null = prompt(text);
+        const index = Number(answer);
 
         if (!Number.isNaN(index) && previousUploads[index]) {
             currentUpload.resumeFromPreviousUpload(previousUploads[index]);
@@ -61,7 +73,7 @@ const TusUploader = ({
             if (contentStatus == "WAIT") {
                 const response = await axios
                     .post(
-                        videoApiEndPoint,
+                        videoApiEndPoint ?? "",
                         {
                             name: targetFile.name,
                             description: "",
@@ -171,6 +183,7 @@ const TusUploader = ({
                 } else if (file.type.substring(0, 5) == "video") {
                     setUploadedUrl(file.name);
                     setFileType("video");
+                    // @ts-ignore
                     localStorage.removeItem(upload._urlStorageKey);
                 } else {
                     setFileType("");
@@ -206,6 +219,7 @@ const TusUploader = ({
 
         try {
             const response = await axios
+                // @ts-ignore
                 .delete(upload._req._url, {
                     headers: {
                         Authorization: `Bearer ${cookieData}`,
@@ -224,6 +238,7 @@ const TusUploader = ({
         } catch (error) {
             console.error("remove video fail", error);
         }
+        // @ts-ignore
         localStorage.removeItem(upload._urlStorageKey);
         remove();
     };

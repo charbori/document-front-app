@@ -26,7 +26,11 @@ export default function BlogPostList() {
     const { dataGridProps } = useDataGrid({
         syncWithLocation: true,
     });
-    const createModalFormProps = useModalForm<IVideo>({
+    const createModalFormProps = useModalForm<
+        IVideo,
+        HttpError,
+        Nullable<IVideo>
+    >({
         refineCoreProps: { action: "create" },
         syncWithLocation: true,
     });
@@ -92,7 +96,7 @@ export default function BlogPostList() {
     });
 
     const modal_event_field_arr = ["id", "name", "description"];
-    const handleRowClick: GridEventListener<"cellClick"> = (params) => {
+    const handleRowClick: any = (params: any) => {
         if (modal_event_field_arr.includes(params.field)) {
             showCreateDrawer(params.id);
         }
