@@ -1,6 +1,13 @@
+import { FunctionComponent } from "react";
 import { videoStorageEndPoint } from "../../utils/common_var";
 
-const VideoComponent = ({ fileName }) => {
+interface VideoComponentProps {
+    fileName: string;
+}
+
+const VideoComponent: FunctionComponent<VideoComponentProps> = ({
+    fileName,
+}) => {
     return (
         <video
             className="max-w-xl max-h-80"

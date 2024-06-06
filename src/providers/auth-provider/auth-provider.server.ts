@@ -1,16 +1,18 @@
 import { cookies } from "next/headers";
 
-export const authProviderServer: AuthBinding = {
+export const authProviderServer = {
     check: async () => {
         const cookieStore = cookies();
         const auth = cookieStore.get("auth");
 
         if (auth) {
             return {
+                success: true,
                 authenticated: true,
             };
         }
         return {
+            success: false,
             authenticated: false,
             logout: true,
             redirectTo: "/login",
@@ -21,10 +23,7 @@ export const authProviderServer: AuthBinding = {
         const auth =
             cookieStore.get("auth") === undefined
                 ? ""
-                : cookieStore.get("auth").value;
+                : cookieStore.get("auth")?.value;
         return auth;
-    },
-    verificationUser: async ({ verificationCode }) => {
-        console.log("test server verification : " + verificationCode);
     },
 };

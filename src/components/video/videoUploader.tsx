@@ -13,7 +13,7 @@ import TusUploader from "../video-tus-upload/videoTusUploader";
 
 const Uploader = () => {
     const inputRef = useRef<HTMLInputElement>(null);
-    const [files, setFiles] = useState([]);
+    const [files, setFiles] = useState<File[]>([]);
     const [globalUploadIdx, setGlobalUploadIdx] = useState(1);
     const [globalUploadSign, setGlobalUploadSign] = useState(true);
     const [isUploadLoading, setIsUploadLoading] = useState(false);
@@ -21,7 +21,7 @@ const Uploader = () => {
     const handleOnSetMultiUploader = async (
         event: ChangeEvent<HTMLInputElement>
     ) => {
-        for (const file of event.target.files) {
+        for (const file of Array.from(event.target.files || [])) {
             setFiles((files) => [...files, file]);
         }
     };
@@ -42,51 +42,6 @@ const Uploader = () => {
         }
         return false;
     }
-
-    const onChangeHandler = async (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        try {
-            setIsUploadLoading(true);
-
-            const formData = new FormData();
-
-            const target = event.target;
-            const file: File = (target.files as FileList)[0];
-
-            formData.append("file", file);
-
-            const res = await axios.post<{ url: string }>(
-                `${apiUrl}/media/upload`,
-                formData,
-                {
-                    withCredentials: false,
-                    headers: {
-                        "Access-Control-Allow-Origin": "*",
-                    },
-                }
-            );
-
-            const { name, size, type, lastModified } = file;
-
-            const imagePaylod = [
-                {
-                    name,
-                    size,
-                    type,
-                    lastModified,
-                    url: res.data.url,
-                },
-            ];
-
-            setValue("images", imagePaylod, { shouldValidate: true });
-
-            setIsUploadLoading(false);
-        } catch (error) {
-            setError("images", { message: "Upload failed. Please try again." });
-            setIsUploadLoading(false);
-        }
-    };
 
     function increaseUploadIdx(uploadVal: number) {
         setGlobalUploadIdx(uploadVal + 1);

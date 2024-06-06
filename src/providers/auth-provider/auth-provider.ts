@@ -1,5 +1,6 @@
 "use client";
 import type { AuthProvider } from "@refinedev/core";
+import type { AuthActionResponse } from "@refinedev/core/src/contexts/auth/types";
 import axios from "axios";
 import Cookies from "js-cookie";
 import {
@@ -26,21 +27,32 @@ export const authProvider: AuthProvider = {
                             path: "/",
                         });
                         location.href = "/login";
-                        return {
+                        const authActionResponse: AuthActionResponse = {
                             success: true,
                         };
+                        return authActionResponse;
                     }
                 })
                 .catch(function (error) {
-                    return {
+                    const authActionResponse: AuthActionResponse = {
                         success: false,
                         error: {
                             name: "로그인 실패",
                             message: "계정명과 비밀번호를 확인해주세요.",
                         },
                     };
+                    return authActionResponse;
                 });
-            return await response;
+            if (response == undefined) {
+                return {
+                    success: false,
+                    error: {
+                        name: "로그인 실패",
+                        message: "계정명과 비밀번호를 확인해주세요.",
+                    },
+                };
+            }
+            return response;
         } catch (error) {
             return {
                 success: false,
@@ -103,7 +115,7 @@ export const authProvider: AuthProvider = {
 
         if (auth) {
             const parsedUser = parseJwt(auth);
-            return parsedUser.role;
+            return parsedUser?.role;
         }
         return null;
     },
@@ -128,7 +140,7 @@ export const authProvider: AuthProvider = {
         console.log(email + " / " + username + " / " + password);
         try {
             const response = await axios
-                .post(registerApiEndPoint, {
+                .post(registerApiEndPoint ?? "", {
                     username: email,
                     password: password,
                 })
@@ -187,7 +199,7 @@ export const authProvider: AuthProvider = {
         const queryParameters = new URLSearchParams(window.location.search);
         const verificationCode = queryParameters.get("verificationCode");
         const response = await axios
-            .post(passwordApiEndPoint, {
+            .post(passwordApiEndPoint ?? "", {
                 password: password,
                 verificationCode: verificationCode,
             })
@@ -211,36 +223,5 @@ export const authProvider: AuthProvider = {
                 };
             });
         return await response;
-    },
-    verificationUser: async ({ verificationCode }) => {
-        // const queryParameters = new URLSearchParams(window.location.search);
-        // const verificationCode = queryParameters.get("verificationCode");
-        // const response = await axios
-        //     .post(passwordApiEndPoint, {
-        //         password: password,
-        //         verificationCode: verificationCode,
-        //     })
-        //     .then(function (response) {
-        //         return {
-        //             success: true,
-        //             redirectTo: "/login",
-        //             successNotification: {
-        //                 message: "비밀번호 변경성공",
-        //                 description: "비밀번호 변경에 성공하였습니다.",
-        //             },
-        //         };
-        //     })
-        //     .catch(function (error) {
-        //         return {
-        //             success: false,
-        //             error: {
-        //                 name: "비밀번호 찾기실패",
-        //                 message: "계정이 올바르지 않습니다.",
-        //             },
-        //         };
-        //     });
-        // return await response;
-        console.log("test verification : " + verificationCode);
-        return;
     },
 };

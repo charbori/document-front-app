@@ -15,7 +15,10 @@ import { UseModalFormReturnType } from "@refinedev/react-hook-form";
 import { IVideo, Nullable } from "../../interfaces/theme";
 import { videoStorageEndPoint } from "../../utils/common_var";
 
-const ExpandButton = ({ videoId }) => {
+interface ExpandButtonProps {
+    videoId: string | undefined;
+}
+const ExpandButton: React.FC<ExpandButtonProps> = ({ videoId }) => {
     const goTo = useGo();
     return (
         <Button
@@ -40,8 +43,10 @@ export const VideoDrawerShow: React.FC<
     const { id } = useParsed();
     const record = queryResult?.data?.data;
     const usernamePath =
+        // @ts-ignore
         record?.user?.username != undefined
-            ? record?.user?.username.split("@")
+            ? // @ts-ignore
+              record?.user?.username.split("@")
             : "";
 
     return (

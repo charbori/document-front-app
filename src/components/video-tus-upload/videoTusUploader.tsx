@@ -121,6 +121,7 @@ const TusUploader: React.FC<TusUploaderProps> = ({
             console.error("regist metadata fail", error);
         }
     };
+
     useEffect(() => {
         if (globalUploadSign && globalUploadIdx == uploadIdx) {
             if (!isAborted) {
