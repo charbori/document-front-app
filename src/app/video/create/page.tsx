@@ -25,8 +25,6 @@ export default function BlogPostCreate() {
         },
     });
 
-    console.log("video create auth" + Cookies.get("auth"));
-
     return (
         <Create isLoading={formLoading} saveButtonProps={saveButtonProps}>
             <Box

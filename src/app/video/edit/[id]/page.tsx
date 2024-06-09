@@ -29,8 +29,6 @@ export default function BlogPostEdit() {
         },
     });
 
-    console.log("video edit auth" + Cookies.get("auth"));
-
     return (
         <Edit isLoading={formLoading} saveButtonProps={saveButtonProps}>
             <Box

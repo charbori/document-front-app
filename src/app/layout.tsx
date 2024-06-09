@@ -60,21 +60,21 @@ export default async function RootLayout({
                                                     },
                                                 },
                                             },
-                                            {
-                                                name: "category",
-                                                list: "/video/category",
-                                                create: "/video/category/create",
-                                                edit: "/video/category/edit/:id",
-                                                show: "/video/category/show/:id",
-                                                meta: {
-                                                    canDelete: true,
-                                                    headers: {
-                                                        Authorization:
-                                                            "Bearer " +
-                                                            authToken,
-                                                    },
-                                                },
-                                            },
+                                            // {
+                                            //     name: "category",
+                                            //     list: "/category",
+                                            //     create: "/category/create",
+                                            //     edit: "/category/edit/:id",
+                                            //     show: "/category/show/:id",
+                                            //     meta: {
+                                            //         canDelete: true,
+                                            //         headers: {
+                                            //             Authorization:
+                                            //                 "Bearer " +
+                                            //                 authToken,
+                                            //         },
+                                            //     },
+                                            // },
                                         ]}
                                         options={{
                                             syncWithLocation: true,

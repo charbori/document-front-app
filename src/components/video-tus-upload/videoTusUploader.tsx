@@ -67,8 +67,6 @@ const TusUploader: React.FC<TusUploaderProps> = ({
     }
 
     const registContentUpload = async (contentStatus: string) => {
-        console.log(contentStatus + " " + cookieData);
-
         try {
             if (contentStatus == "WAIT") {
                 const response = await axios

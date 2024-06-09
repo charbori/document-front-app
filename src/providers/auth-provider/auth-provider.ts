@@ -137,7 +137,6 @@ export const authProvider: AuthProvider = {
         return { error };
     },
     register: async ({ email, username, password, remember }) => {
-        console.log(email + " / " + username + " / " + password);
         try {
             const response = await axios
                 .post(registerApiEndPoint ?? "", {
