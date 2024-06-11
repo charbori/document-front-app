@@ -15,12 +15,22 @@ import type { PreviousUpload, Upload } from "tus-js-client";
 import { useTus } from "use-tus";
 import { videoApiEndPoint, videoUploadEndPoint } from "../../utils/common_var";
 
+interface uploaderProps {
+    files: File;
+    uploadIdx: number;
+    isUploadLoading: boolean;
+    progress: number;
+    isSuccess: boolean;
+}
 interface TusUploaderProps {
     uploadIdx: number;
     targetFile: File;
     globalUploadIdx: number;
     globalUploadSign: boolean;
     increaseUploadIdx(uploadVal: number): void;
+    isUploadSuccess: boolean;
+    uploadProgress: number;
+    uploadObj: uploaderProps;
 }
 
 const TusUploader: React.FC<TusUploaderProps> = ({
@@ -29,6 +39,9 @@ const TusUploader: React.FC<TusUploaderProps> = ({
     globalUploadIdx,
     globalUploadSign,
     increaseUploadIdx,
+    isUploadSuccess,
+    uploadProgress,
+    uploadObj,
 }) => {
     const { upload, setUpload, isSuccess, isAborted, isUploading, remove } =
         useTus({
@@ -67,60 +80,53 @@ const TusUploader: React.FC<TusUploaderProps> = ({
     }
 
     const registContentUpload = async (contentStatus: string) => {
-        try {
-            if (contentStatus == "WAIT") {
-                const response = await axios
-                    .post(
-                        videoApiEndPoint ?? "",
-                        {
-                            name: targetFile.name,
-                            description: "",
-                            tag: "1.0",
-                            status: contentStatus,
-                            videoType: targetFile.type,
-                            role: "ROLE_ADMIN",
+        if (contentStatus == "WAIT") {
+            const response = await axios
+                .post(
+                    videoApiEndPoint ?? "",
+                    {
+                        name: targetFile.name,
+                        description: "",
+                        tag: "1.0",
+                        status: contentStatus,
+                        videoType: targetFile.type,
+                        role: "ROLE_ADMIN",
+                    },
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${cookieData}`,
                         },
-                        {
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${cookieData}`,
-                            },
-                        }
-                    )
-                    .then(function (response) {
-                        console.log(response);
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    });
-            } else {
-                const response = await axios
-                    .patch(
-                        videoApiEndPoint + "/status",
-                        {
-                            name: targetFile.name,
-                            status: contentStatus,
+                    }
+                )
+                .catch(function (error) {
+                    console.error("REGIST VIDEO FAIL", error);
+                });
+        } else {
+            const response = await axios
+                .patch(
+                    videoApiEndPoint + "/status",
+                    {
+                        name: targetFile.name,
+                        status: contentStatus,
+                    },
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${cookieData}`,
                         },
-                        {
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${cookieData}`,
-                            },
-                        }
-                    )
-                    .then(function (response) {
-                        console.log(response);
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    });
-            }
-        } catch (error) {
-            console.error("regist metadata fail", error);
+                    }
+                )
+                .catch(function (error) {
+                    console.error("UPDATE STATUS VIDEO FAIL", error);
+                });
         }
     };
 
     useEffect(() => {
+        console.log(
+            "globalUploadIdx : " + globalUploadIdx + " uploadIdx : " + uploadIdx
+        );
         if (globalUploadSign && globalUploadIdx == uploadIdx) {
             if (!isAborted) {
                 startUploading();
@@ -128,13 +134,19 @@ const TusUploader: React.FC<TusUploaderProps> = ({
                 increaseUploadIdx(uploadIdx);
             }
         }
-        if (globalUploadSign === false && upload) {
-            upload.abort();
+    }, [upload, globalUploadIdx]);
+
+    useEffect(() => {
+        console.log("globalUploadSign : " + globalUploadSign);
+        if (!isSuccess) {
+            if (globalUploadSign === false && upload) {
+                upload.abort();
+            }
         }
-    }, [upload, globalUploadIdx, globalUploadSign]);
+    }, [globalUploadSign]);
 
     function startUploading() {
-        if (upload) {
+        if (upload && !isSuccess) {
             upload.findPreviousUploads().then((previousUploads) => {
                 askToResumeUpload(previousUploads, upload);
                 upload.start();
@@ -144,16 +156,28 @@ const TusUploader: React.FC<TusUploaderProps> = ({
 
     useEffect(() => {
         const file = targetFile;
-
         if (!file) {
             return;
         }
+
+        setFileName(file.name);
+        if (uploadObj.isSuccess) {
+            setProgress(100);
+            return;
+        }
+
+        console.log("file : " + targetFile);
+        console.log(
+            "run uploader progress" +
+                progress +
+                " / upload status : " +
+                uploadStart
+        );
 
         if (progress == 0 && uploadStart == 0) {
             setUploadStart(1);
             registContentUpload("WAIT");
         }
-        setFileName(file.name);
 
         setUpload(file, {
             endpoint: videoUploadEndPoint,
@@ -188,6 +212,8 @@ const TusUploader: React.FC<TusUploaderProps> = ({
                     setFileType("");
                 }
                 increaseUploadIdx(uploadIdx);
+
+                uploadObj.isSuccess = true;
             },
         });
     }, [targetFile]);
@@ -215,28 +241,20 @@ const TusUploader: React.FC<TusUploaderProps> = ({
         if (!upload) {
             return;
         }
-
-        try {
-            const response = await axios
-                // @ts-ignore
-                .delete(upload._req._url, {
-                    headers: {
-                        Authorization: `Bearer ${cookieData}`,
-                        "Content-Type": "application/json",
-                    },
-                    data: {
-                        name: targetFile.name,
-                    },
-                })
-                .then(function (response) {
-                    console.log(response);
-                })
-                .catch(function (error) {
-                    console.log(error);
-                });
-        } catch (error) {
-            console.error("remove video fail", error);
-        }
+        const response = await axios
+            // @ts-ignore
+            .delete(upload._req._url, {
+                headers: {
+                    Authorization: `Bearer ${cookieData}`,
+                    "Content-Type": "application/json",
+                },
+                data: {
+                    name: targetFile.name,
+                },
+            })
+            .catch(function (error) {
+                console.error("REMOVE VIDEO FAIL", error);
+            });
         // @ts-ignore
         localStorage.removeItem(upload._urlStorageKey);
         remove();
@@ -249,20 +267,13 @@ const TusUploader: React.FC<TusUploaderProps> = ({
         >
             <Stack spacing={4} direction="row">
                 {uploadedUrl && fileType == "photo" && (
-                    // <div className="max-w-md max-h-fit flex md:flex-col items-center flex-1 mt-8">
-                    //     <img src={uploadedUrl} alt="upload" />
-                    // </div>
                     <InsertPhotoIcon color="primary"></InsertPhotoIcon>
                 )}
                 {uploadedUrl && fileType == "video" && (
-                    // <div className="max-w-md max-h-fit flex md:flex-col items-center flex-1 mt-8">
-                    //     <VideoComponent fileName={uploadedUrl} />
-                    // </div>
                     <VideoFileIcon color="primary"></VideoFileIcon>
                 )}
                 <span>{fileName}</span>
-                {!isUploading && !isSuccess && (
-                    //disabled={isSuccess || !isAborted}
+                {!isUploading && !isSuccess && !uploadObj.isSuccess && (
                     <PlayArrowIcon onClick={handleOnStart}></PlayArrowIcon>
                 )}
                 {isUploading && progress < 100 && (
@@ -285,7 +296,6 @@ const TusUploader: React.FC<TusUploaderProps> = ({
                         ></DeleteIcon>
                     </>
                 )}
-                {/* disabled={!isUploading} */}
             </Stack>
         </div>
     );

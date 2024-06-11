@@ -48,7 +48,6 @@ export default async function RootLayout({
                                             {
                                                 name: "video",
                                                 list: "/video",
-                                                //create: "/video/create",
                                                 edit: "/video/edit/:id",
                                                 show: "/video/show/:id",
                                                 meta: {
@@ -60,21 +59,6 @@ export default async function RootLayout({
                                                     },
                                                 },
                                             },
-                                            // {
-                                            //     name: "category",
-                                            //     list: "/category",
-                                            //     create: "/category/create",
-                                            //     edit: "/category/edit/:id",
-                                            //     show: "/category/show/:id",
-                                            //     meta: {
-                                            //         canDelete: true,
-                                            //         headers: {
-                                            //             Authorization:
-                                            //                 "Bearer " +
-                                            //                 authToken,
-                                            //         },
-                                            //     },
-                                            // },
                                         ]}
                                         options={{
                                             syncWithLocation: true,

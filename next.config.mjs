@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 
+const API_URL = process.env.API_URL;
+const STORAGE_URL = process.env.STORAGE_URL;
+
 const nextConfig = {
     reactStrictMode: false,
     typescript: {
@@ -28,11 +31,11 @@ const nextConfig = {
         return [
             {
                 source: "/video-storage/:path*",
-                destination: "http://content1.couhensoft.com:9000/:path*",
+                destination: `${STORAGE_URL}/:path*`,
             },
             {
                 source: "/:path*",
-                destination: "https://api.couhensoft.com/:path*",
+                destination: `${API_URL}/:path*`,
             },
         ];
     },
