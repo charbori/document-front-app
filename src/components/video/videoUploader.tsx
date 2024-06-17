@@ -7,8 +7,11 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import DialogContentText from "@mui/material/DialogContentText";
 import Stack from "@mui/material/Stack";
+import axios from "axios";
+import Cookies from "js-cookie";
 import { ChangeEvent, useRef, useState } from "react";
 import uuid from "react-uuid";
+import { videoApiEndPoint } from "../../utils/common_var";
 import TusUploader from "../video-tus-upload/videoTusUploader";
 
 interface uploaderProps {
@@ -18,30 +21,156 @@ interface uploaderProps {
     progress: number;
     isSuccess: boolean;
 }
+
+interface uploadValidProps {
+    isFileExist: boolean;
+    file: File;
+}
+
 const Uploader = () => {
     const inputRef = useRef<HTMLInputElement>(null);
     //const [files, setFiles] = useState<File[]>([]);
     const [uploadFiles, setUploadFiles] = useState<uploaderProps[]>([]);
+    const [uploadIdx, setUploadIdx] = useState(1);
     const [globalUploadIdx, setGlobalUploadIdx] = useState(1);
     const [globalUploadSign, setGlobalUploadSign] = useState(true);
     const [isUploadLoading, setIsUploadLoading] = useState(false);
+    const cookieData = Cookies.get("auth");
+    const [fileUploadExist, setFileUploadExist] = useState(false);
 
+    // onclick event
     const handleOnSetMultiUploader = async (
         event: ChangeEvent<HTMLInputElement>
     ) => {
-        let idx = 1;
         for (const file of Array.from(event.target.files || [])) {
-            const uploadFile: uploaderProps = {
-                files: file,
-                uploadIdx: idx,
-                isUploadLoading: false,
-                progress: 0,
-                isSucces: false,
-            };
-            setUploadFiles((uploadFiles) => [...uploadFiles, uploadFile]);
-            idx++;
-            //setFiles((files) => [...files, file]);
+            getContentUpload(file);
         }
+    };
+
+    // server model validation
+    const getContentUpload = async (file: File) => {
+        const response = await axios
+            .get(videoApiEndPoint + `/video/validation/${file.name}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${cookieData}`,
+                },
+            })
+            .then(function (response) {
+                let newFile: File;
+                if (response.data.data != "") {
+                    newFile = makeNewFile(file, response.data.data);
+                } else {
+                    newFile = file;
+                }
+                const validationData: uploadValidProps = {
+                    isFileExist: response.data.data == "" ? false : true,
+                    file: newFile,
+                };
+
+                setFileUpload(validationData);
+            })
+            .catch(function (error) {
+                console.error("REGIST VIDEO FAIL", error);
+                return false;
+            });
+
+        return response;
+    };
+
+    // server make model
+    const registContentUpload = async (
+        contentStatus: string,
+        targetFile: File
+    ) => {
+        if (contentStatus == "WAIT") {
+            const response = await axios
+                .post(
+                    videoApiEndPoint ?? "",
+                    {
+                        name: targetFile.name,
+                        description: "",
+                        tag: "1.0",
+                        status: contentStatus,
+                        videoType: targetFile.type,
+                        role: "ROLE_ADMIN",
+                    },
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${cookieData}`,
+                        },
+                    }
+                )
+                .catch(function (error) {
+                    console.error("REGIST VIDEO FAIL", error);
+                });
+        } else {
+            const response = await axios
+                .patch(
+                    videoApiEndPoint + "/status",
+                    {
+                        name: targetFile.name,
+                        status: contentStatus,
+                    },
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${cookieData}`,
+                        },
+                    }
+                )
+                .catch(function (error) {
+                    console.error("UPDATE STATUS VIDEO FAIL", error);
+                });
+        }
+        return true;
+    };
+
+    // client make view
+    const setFileUpload = ({ isFileExist, file }: uploadValidProps) => {
+        const uploadFile: uploaderProps = {
+            files: file,
+            uploadIdx: uploadIdx,
+            isUploadLoading: false,
+            progress: 0,
+            isSuccess: false,
+        };
+        if (uploadIdx == 1) {
+            uploadFile.isUploadLoading = true;
+        }
+        if (isFileExist) {
+            if (confirm("Do you want re-upload same name file")) {
+                registContentUpload("WAIT", file);
+                setUploadFiles((uploadFiles) => [...uploadFiles, uploadFile]);
+                setUploadIdx(uploadIdx + 1);
+            } else {
+                return;
+            }
+        } else {
+            registContentUpload("WAIT", file);
+            setUploadFiles((uploadFiles) => [...uploadFiles, uploadFile]);
+            setUploadIdx(uploadIdx + 1);
+        }
+    };
+
+    const makeNewFile = (oldFile: File, newFileName: string) => {
+        let newFile: File;
+        const fileType: string = oldFile.name.split(".")[1].toLowerCase();
+        switch (fileType) {
+            case "jpg": //jpg일 경우
+            case "png":
+            case "mp4":
+                newFile = new File([oldFile], `${newFileName}`, {
+                    type: oldFile.type,
+                });
+                break;
+            default:
+                alert("지원하지 않는 파일 형식입니다.");
+                return oldFile;
+                break;
+        }
+        return newFile;
     };
 
     const handleOnSelectFile = () => {

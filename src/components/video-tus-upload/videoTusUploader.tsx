@@ -123,10 +123,20 @@ const TusUploader: React.FC<TusUploaderProps> = ({
         }
     };
 
+    const getContentUpload = async () => {
+        const response = await axios
+            .get(videoApiEndPoint + `/${fileName}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${cookieData}`,
+                },
+            })
+            .catch(function (error) {
+                console.error("REGIST VIDEO FAIL", error);
+            });
+    };
+
     useEffect(() => {
-        console.log(
-            "globalUploadIdx : " + globalUploadIdx + " uploadIdx : " + uploadIdx
-        );
         if (globalUploadSign && globalUploadIdx == uploadIdx) {
             if (!isAborted) {
                 startUploading();
@@ -137,7 +147,6 @@ const TusUploader: React.FC<TusUploaderProps> = ({
     }, [upload, globalUploadIdx]);
 
     useEffect(() => {
-        console.log("globalUploadSign : " + globalUploadSign);
         if (!isSuccess) {
             if (globalUploadSign === false && upload) {
                 upload.abort();
@@ -166,17 +175,9 @@ const TusUploader: React.FC<TusUploaderProps> = ({
             return;
         }
 
-        console.log("file : " + targetFile);
-        console.log(
-            "run uploader progress" +
-                progress +
-                " / upload status : " +
-                uploadStart
-        );
-
         if (progress == 0 && uploadStart == 0) {
             setUploadStart(1);
-            registContentUpload("WAIT");
+            //registContentUpload("WAIT");
         }
 
         setUpload(file, {
