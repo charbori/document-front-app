@@ -2,7 +2,14 @@
 
 import Skeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {
+    DataGrid,
+    GridColDef,
+    GridToolbar,
+    getGridDateOperators,
+    getGridNumericOperators,
+    getGridStringOperators,
+} from "@mui/x-data-grid";
 import { HttpError, useMany } from "@refinedev/core";
 import {
     DateField,
@@ -20,7 +27,10 @@ import { VideoModal } from "../../components/video/videoUploaderModal";
 
 import { VideoDrawerShow } from "../../components/video/videoDrawer";
 import { IVideo, Nullable } from "../../interfaces/theme";
-
+export const getUtcDateIgnoreTz = (value) => {
+    const localDate = new Date(value.row.createdAt);
+    return localDate;
+};
 export default function BlogPostList() {
     const [loading, setLoading] = React.useState(true);
     const { dataGridProps } = useDataGrid({
@@ -109,17 +119,29 @@ export default function BlogPostList() {
                 headerName: "ID",
                 type: "number",
                 minWidth: 50,
+                filterOperators: getGridNumericOperators().filter(
+                    (operator) => operator.value === "="
+                ),
             },
             {
                 field: "name",
                 flex: 1,
                 headerName: "name",
+                type: "string",
                 minWidth: 200,
+                filterOperators: getGridStringOperators().filter(
+                    (operator) =>
+                        operator.value === "contains" ||
+                        //operator.value === "startsWith" ||
+                        //operator.value === "endsWith" ||
+                        operator.value === "equals"
+                ),
             },
             {
                 field: "description",
                 flex: 1,
                 headerName: "description",
+                type: "string",
                 minWidth: 250,
                 renderCell: function render({ value }) {
                     if (!value) return "-";
@@ -129,15 +151,30 @@ export default function BlogPostList() {
                         />
                     );
                 },
+                filterOperators: getGridStringOperators().filter(
+                    (operator) =>
+                        operator.value === "contains" ||
+                        //operator.value === "startsWith" ||
+                        //operator.value === "endsWith" ||
+                        operator.value === "equals"
+                ),
             },
             {
                 field: "createdAt",
                 flex: 1,
+                type: "dateTime",
                 headerName: "Created at",
                 minWidth: 250,
+                valueGetter: (params) => getUtcDateIgnoreTz(params),
                 renderCell: function render({ value }) {
                     return <DateField value={value} />;
                 },
+                filterOperators: getGridDateOperators().filter(
+                    (operator) =>
+                        //operator.value === "after" ||
+                        //operator.value === "before" ||
+                        operator.value === "is"
+                ),
             },
             {
                 field: "actions",
@@ -183,6 +220,7 @@ export default function BlogPostList() {
                         columns={columns}
                         autoHeight
                         onCellClick={handleRowClick}
+                        slots={{ toolbar: GridToolbar }}
                     />
                 )}
             </List>
