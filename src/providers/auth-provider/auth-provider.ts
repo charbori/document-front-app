@@ -13,7 +13,7 @@ export const authProvider: AuthProvider = {
     login: async ({ email, username, password, remember }) => {
         try {
             const response = await axios
-                .post(`/api/auth`, {
+                .post(`/api/v1/auth/login`, {
                     username: email,
                     password: password,
                     headers: {
