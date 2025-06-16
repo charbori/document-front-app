@@ -7,13 +7,14 @@ import { Metadata } from "next";
 import { cookies } from "next/headers";
 import React, { Suspense } from "react";
 
+import { ko } from "@/locales/ko";
 import { ColorModeContextProvider } from "@contexts/color-mode";
 import { authProvider, authProviderServer } from "@providers/auth-provider";
 import { dataProvider } from "@providers/data-provider";
 
 export const metadata: Metadata = {
-    title: "kvi video manager",
-    description: "kvi video manager",
+    title: ko.meta.title,
+    description: ko.meta.description,
     icons: {
         icon: "/favicon.ico",
     },
@@ -46,12 +47,29 @@ export default async function RootLayout({
                                         authProvider={authProvider}
                                         resources={[
                                             {
-                                                name: "video",
-                                                list: "/video",
-                                                edit: "/video/edit/:id",
-                                                show: "/video/show/:id",
+                                                name: "documents",
+                                                list: "/documents",
+                                                create: "/documents/create",
+                                                edit: "/documents/edit/:id",
+                                                show: "/documents/show/:id",
                                                 meta: {
                                                     canDelete: true,
+                                                    label: ko.nav.documents,
+                                                    headers: {
+                                                        Authorization:
+                                                            "Bearer " +
+                                                            authToken,
+                                                    },
+                                                },
+                                            },
+                                            {
+                                                name: "comparisons",
+                                                list: "/comparisons",
+                                                create: "/comparisons/create",
+                                                show: "/comparisons/show/:id",
+                                                meta: {
+                                                    canDelete: true,
+                                                    label: ko.nav.comparisons,
                                                     headers: {
                                                         Authorization:
                                                             "Bearer " +

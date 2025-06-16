@@ -6,19 +6,18 @@ export default async function Login() {
     const data = await getData();
 
     if (data.authenticated) {
-        redirect(data?.redirectTo || "/video");
+        redirect(data?.redirectTo || "/documents");
     }
 
     return <AuthPage type="login" />;
 }
 
 async function getData() {
-    const { authenticated, redirectTo, error } =
+    const { authenticated, redirectTo } =
         await authProviderServer.check();
 
     return {
         authenticated,
         redirectTo,
-        error,
     };
 }

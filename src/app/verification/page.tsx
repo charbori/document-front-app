@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslation } from "@/hooks/useTranslation";
 import { AppIcon } from "@components/app-icon";
 import { Box, Button } from "@mui/material";
 import Dialog from "@mui/material/Dialog";
@@ -12,6 +13,7 @@ import { useState } from "react";
 import { verificationEndPoint } from "../../utils/common_var";
 
 export default function Verification() {
+    const { t } = useTranslation();
     const verificationUrl = verificationEndPoint;
     const router = useRouter();
     const [open, setOpen] = useState(false);
@@ -70,14 +72,14 @@ export default function Verification() {
                             variant="outlined"
                             onClick={() => verificationUser()}
                         >
-                            Verification
+                            {t("auth.verification")}
                         </Button>
                     </Box>
                 }
                 title={
                     <ThemedTitleV2
                         collapsed={false}
-                        text="kvi Video Manager"
+                        text={t("meta.title")}
                         icon={<AppIcon />}
                     />
                 }
@@ -90,16 +92,14 @@ export default function Verification() {
             >
                 <DialogTitle id="alert-dialog-title">
                     {modalType == "fail"
-                        ? `회원 검증에 실패하였습니다.
-                        비밀번호 찾기를 통해 다시 확인해주세요.`
-                        : `회원 검증에 성공하였습니다.
-                        로그인을 해주세요.`}
+                        ? t("auth.verificationFailed")
+                        : t("auth.verificationSuccess")}
                 </DialogTitle>
                 <DialogActions>
                     {modalType == "fail" ? (
-                        <Button onClick={handleClose}>Find User</Button>
+                        <Button onClick={handleClose}>{t("auth.findUser")}</Button>
                     ) : (
-                        <Button onClick={handleClose}>Login</Button>
+                        <Button onClick={handleClose}>{t("auth.login")}</Button>
                     )}
                 </DialogActions>
             </Dialog>

@@ -1,0 +1,156 @@
+export const en = {
+  // Metadata
+  meta: {
+    title: "Document Management System",
+    description: "Document Viewer and Comparison System",
+  },
+  
+  // Common menu/navigation
+  nav: {
+    documents: "Documents",
+    comparisons: "Document Comparison",
+    logout: "Logout",
+    settings: "Settings",
+  },
+  
+  // Common actions/buttons
+  actions: {
+    save: "Save",
+    cancel: "Cancel",
+    delete: "Delete",
+    edit: "Edit",
+    view: "View",
+    create: "Create",
+    upload: "Upload",
+    download: "Download",
+    search: "Search",
+    filter: "Filter",
+    close: "Close",
+    confirm: "Confirm",
+    back: "Back",
+    next: "Next",
+    previous: "Previous",
+    refresh: "Refresh",
+    print: "Print",
+    fullscreen: "Fullscreen",
+    compare: "Compare",
+    start: "Start",
+  },
+  
+  // Status
+  status: {
+    pending: "Pending",
+    completed: "Completed",
+    failed: "Failed",
+    active: "Active",
+    inactive: "Inactive",
+    loading: "Loading...",
+    success: "Success",
+    error: "Error",
+  },
+  
+  // Document related
+  documents: {
+    title: "Document Management",
+    list: "Document List",
+    upload: "Upload Document",
+    name: "Document Name",
+    type: "File Type",
+    size: "File Size",
+    category: "Category",
+    uploadedAt: "Upload Date",
+    actions: "Actions",
+    noDocuments: "No documents found",
+    uploadSuccess: "Document uploaded successfully",
+    uploadFailed: "Document upload failed",
+    deleteConfirm: "Are you sure you want to delete this document?",
+    unsupportedFormat: "Unsupported document format",
+    textContent: "Text document content will be displayed here",
+  },
+  
+  // Document comparison related
+  comparisons: {
+    title: "Document Comparison",
+    newComparison: "New Document Comparison",
+    list: "Comparison List",
+    name: "Comparison Name",
+    document1: "First Document",
+    document2: "Second Document",
+    selectDocument1: "Select First Document",
+    selectDocument2: "Select Second Document",
+    startComparison: "Start Comparison",
+    viewResult: "View Result",
+    comparisonResult: "Comparison Result",
+    summary: "Comparison Summary",
+    similarity: "Similarity",
+    differences: "Differences",
+    differencesFound: "differences found",
+    sideBySide: "Side by Side",
+    overlay: "Overlay View",
+    swapDocuments: "Swap Documents",
+    downloadReport: "Download Report",
+    foundDifferences: "Found Differences",
+    added: "Added",
+    removed: "Removed",
+    modified: "Modified",
+    page: "Page",
+    location: "Location",
+    createdAt: "Created Date",
+  },
+  
+  // Document viewer related
+  viewer: {
+    zoomIn: "Zoom In",
+    zoomOut: "Zoom Out",
+    rotateLeft: "Rotate Left",
+    rotateRight: "Rotate Right",
+    fullscreen: "Fullscreen",
+    print: "Print",
+    download: "Download",
+    zoom: "Zoom",
+  },
+  
+  // Authentication related
+  auth: {
+    login: "Login",
+    logout: "Logout",
+    email: "Email",
+    password: "Password",
+    forgotPassword: "Forgot Password",
+    register: "Register",
+    verification: "Verification",
+    loginRequired: "Login required",
+    invalidCredentials: "Invalid email or password",
+    verificationSuccess: "Verification successful. Please login.",
+    verificationFailed: "Verification failed. Please try password recovery.",
+    findUser: "Find User",
+  },
+  
+  // Common messages
+  messages: {
+    success: "Operation completed successfully",
+    error: "An error occurred",
+    loading: "Loading...",
+    noData: "No data available",
+    confirmDelete: "Are you sure you want to delete this?",
+    unsavedChanges: "You have unsaved changes",
+  },
+  
+  // Form related
+  form: {
+    required: "This field is required",
+    invalid: "Invalid format",
+    minLength: "Minimum {min} characters required",
+    maxLength: "Maximum {max} characters allowed",
+    email: "Please enter a valid email address",
+  },
+  
+  // Table/grid related
+  table: {
+    noRows: "No data available",
+    loading: "Loading data...",
+    rowsPerPage: "Rows per page",
+    of: "of",
+    page: "Page",
+  },
+}; 
