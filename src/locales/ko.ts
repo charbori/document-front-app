@@ -15,6 +15,7 @@ export const ko = {
   
   // 공통 액션/버튼
   actions: {
+    add: "추가",
     save: "저장",
     cancel: "취소",
     delete: "삭제",
@@ -35,6 +36,7 @@ export const ko = {
     fullscreen: "전체화면",
     compare: "비교",
     start: "시작",
+    all: "전체",
   },
   
   // 상태
@@ -47,6 +49,9 @@ export const ko = {
     loading: "로딩중...",
     success: "성공",
     error: "오류",
+    draft: "임시저장",
+    published: "게시됨",
+    archived: "보관됨",
   },
   
   // 문서 관련
@@ -66,6 +71,9 @@ export const ko = {
     deleteConfirm: "이 문서를 삭제하시겠습니까?",
     unsupportedFormat: "지원되지 않는 문서 형식입니다",
     textContent: "텍스트 문서 내용이 여기에 표시됩니다",
+    fileName: "파일명",
+    content: "내용",
+    version: "버전",
   },
   
   // 문서 비교 관련
@@ -78,11 +86,20 @@ export const ko = {
     document2: "두 번째 문서",
     selectDocument1: "첫 번째 문서 선택",
     selectDocument2: "두 번째 문서 선택",
+    originalDocument: "원본 문서",
+    compareDocument: "비교 문서",
+    originalText: "원본 텍스트",
+    compareText: "비교 텍스트",
+    documentCompare: "문서 비교",
+    textCompare: "텍스트 비교",
     startComparison: "비교 시작",
     viewResult: "결과 보기",
     comparisonResult: "비교 결과",
     summary: "비교 결과 요약",
+    statistics: "통계",
+    changes: "변경 사항",
     similarity: "유사도",
+    totalLines: "전체 라인",
     differences: "차이점",
     differencesFound: "개 차이점 발견",
     sideBySide: "나란히 보기",
@@ -96,6 +113,10 @@ export const ko = {
     page: "페이지",
     location: "위치",
     createdAt: "생성 날짜",
+    veryHigh: "매우 높음",
+    high: "높음",
+    medium: "보통",
+    low: "낮음",
   },
   
   // 문서 뷰어 관련
@@ -134,6 +155,8 @@ export const ko = {
     noData: "데이터가 없습니다",
     confirmDelete: "정말로 삭제하시겠습니까?",
     unsavedChanges: "저장되지 않은 변경사항이 있습니다",
+    selectDocuments: "원본 문서와 비교 문서를 선택해주세요",
+    enterTexts: "원본 텍스트와 비교 텍스트를 입력해주세요",
   },
   
   // 폼 관련
@@ -143,6 +166,7 @@ export const ko = {
     minLength: "최소 {min}자 이상 입력해주세요",
     maxLength: "최대 {max}자까지 입력 가능합니다",
     email: "올바른 이메일 주소를 입력해주세요",
+    description: "설명",
   },
   
   // 테이블/그리드 관련
@@ -152,5 +176,9 @@ export const ko = {
     rowsPerPage: "페이지당 행 수",
     of: "중",
     page: "페이지",
+    status: "상태",
+    createdAt: "생성일",
+    updatedAt: "수정일",
+    actions: "작업",
   },
 }; 

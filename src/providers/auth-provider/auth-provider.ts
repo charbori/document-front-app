@@ -3,6 +3,7 @@ import type { AuthProvider } from "@refinedev/core";
 import type { AuthActionResponse } from "@refinedev/core/src/contexts/auth/types";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { removeAuthToken, setAuthToken } from "../../services/api";
 import {
     passwordApiEndPoint,
     registerApiEndPoint,
@@ -13,27 +14,33 @@ export const authProvider: AuthProvider = {
     login: async ({ email, username, password, remember }) => {
         try {
             const response = await axios
-                .post(`/api/v1/auth/login`, {
+                .post(`/api/auth`, {
                     username: email,
                     password: password,
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
                 })
                 .then(function (response) {
                     if (response.data.data) {
+                        // 쿠키에 저장 (서버사이드 확인용)
                         Cookies.set("auth", response.data.data, {
                             expires: 30,
                             path: "/",
                         });
-                        location.href = "/login";
+                        
+                        // localStorage에도 저장 (API 호출용)
+                        setAuthToken(response.data.data);
+                        
+                        // 로그인 성공 후 홈페이지로 리디렉션
+                        window.location.href = "/";
+                        
                         const authActionResponse: AuthActionResponse = {
                             success: true,
+                            redirectTo: "/",
                         };
                         return authActionResponse;
                     }
                 })
                 .catch(function (error) {
+                    console.error("Login error:", error);
                     const authActionResponse: AuthActionResponse = {
                         success: false,
                         error: {
@@ -54,6 +61,7 @@ export const authProvider: AuthProvider = {
             }
             return response;
         } catch (error) {
+            console.error("Login catch error:", error);
             return {
                 success: false,
                 error: {
@@ -64,7 +72,10 @@ export const authProvider: AuthProvider = {
         }
     },
     logout: async () => {
+        // 쿠키와 localStorage 모두에서 토큰 제거
         Cookies.remove("auth", { path: "/" });
+        removeAuthToken();
+        
         const response = await axios
             .get(`/api/auth?type=logout`, {
                 headers: {
@@ -78,6 +89,7 @@ export const authProvider: AuthProvider = {
                 };
             })
             .catch(function (error) {
+                console.error("Logout error:", error);
                 return {
                     success: false,
                     error: {
@@ -99,9 +111,37 @@ export const authProvider: AuthProvider = {
         // });
 
         if (auth) {
-            return {
-                authenticated: true,
-            };
+            // JWT 토큰이 유효한지 확인
+            try {
+                const parsedToken = parseJwt(auth);
+                if (parsedToken && parsedToken.exp) {
+                    const currentTime = Date.now() / 1000;
+                    if (parsedToken.exp > currentTime) {
+                        // localStorage에도 토큰이 있는지 확인하고 없으면 설정
+                        const localToken = localStorage.getItem('auth_token');
+                        if (!localToken) {
+                            setAuthToken(auth);
+                        }
+                        return {
+                            authenticated: true,
+                        };
+                    } else {
+                        // 토큰이 만료된 경우
+                        Cookies.remove("auth", { path: "/" });
+                        removeAuthToken();
+                        return {
+                            authenticated: false,
+                            logout: true,
+                            redirectTo: "/login",
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error("Token parsing error:", error);
+                // 토큰 파싱 에러시 로그아웃 처리
+                Cookies.remove("auth", { path: "/" });
+                removeAuthToken();
+            }
         }
 
         return {
@@ -129,6 +169,9 @@ export const authProvider: AuthProvider = {
     },
     onError: async (error) => {
         if (error.response?.status === 401) {
+            // 401 에러시 토큰 제거하고 로그아웃
+            Cookies.remove("auth", { path: "/" });
+            removeAuthToken();
             return {
                 logout: true,
             };

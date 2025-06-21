@@ -1,6 +1,6 @@
 type JwtPayload = {
-    exp?: Number;
-    iat?: Number;
+    exp?: number;
+    iat?: number;
     [key: string]: any;
 };
 

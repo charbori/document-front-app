@@ -15,6 +15,7 @@ export const en = {
   
   // Common actions/buttons
   actions: {
+    add: "Add",
     save: "Save",
     cancel: "Cancel",
     delete: "Delete",
@@ -35,6 +36,7 @@ export const en = {
     fullscreen: "Fullscreen",
     compare: "Compare",
     start: "Start",
+    all: "All",
   },
   
   // Status
@@ -47,6 +49,9 @@ export const en = {
     loading: "Loading...",
     success: "Success",
     error: "Error",
+    draft: "Draft",
+    published: "Published",
+    archived: "Archived",
   },
   
   // Document related
@@ -66,6 +71,9 @@ export const en = {
     deleteConfirm: "Are you sure you want to delete this document?",
     unsupportedFormat: "Unsupported document format",
     textContent: "Text document content will be displayed here",
+    fileName: "File Name",
+    content: "Content",
+    version: "Version",
   },
   
   // Document comparison related
@@ -78,11 +86,20 @@ export const en = {
     document2: "Second Document",
     selectDocument1: "Select First Document",
     selectDocument2: "Select Second Document",
+    originalDocument: "Original Document",
+    compareDocument: "Compare Document",
+    originalText: "Original Text",
+    compareText: "Compare Text",
+    documentCompare: "Document Compare",
+    textCompare: "Text Compare",
     startComparison: "Start Comparison",
     viewResult: "View Result",
     comparisonResult: "Comparison Result",
     summary: "Comparison Summary",
+    statistics: "Statistics",
+    changes: "Changes",
     similarity: "Similarity",
+    totalLines: "Total Lines",
     differences: "Differences",
     differencesFound: "differences found",
     sideBySide: "Side by Side",
@@ -96,6 +113,10 @@ export const en = {
     page: "Page",
     location: "Location",
     createdAt: "Created Date",
+    veryHigh: "Very High",
+    high: "High",
+    medium: "Medium",
+    low: "Low",
   },
   
   // Document viewer related
@@ -134,17 +155,20 @@ export const en = {
     noData: "No data available",
     confirmDelete: "Are you sure you want to delete this?",
     unsavedChanges: "You have unsaved changes",
+    selectDocuments: "Please select original and compare documents",
+    enterTexts: "Please enter original and compare texts",
   },
   
-  // Form related
+    // Form related
   form: {
     required: "This field is required",
     invalid: "Invalid format",
     minLength: "Minimum {min} characters required",
     maxLength: "Maximum {max} characters allowed",
     email: "Please enter a valid email address",
+    description: "Description",
   },
-  
+
   // Table/grid related
   table: {
     noRows: "No data available",
@@ -152,5 +176,9 @@ export const en = {
     rowsPerPage: "Rows per page",
     of: "of",
     page: "Page",
+    status: "Status",
+    createdAt: "Created",
+    updatedAt: "Updated",
+    actions: "Actions",
   },
 }; 
