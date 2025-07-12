@@ -1,41 +1,41 @@
 "use client";
 
 import {
-    Add as AddIcon,
-    Delete as DeleteIcon,
-    Edit as EditIcon,
-    Refresh as RefreshIcon,
-    Search as SearchIcon,
-    Visibility as ViewIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Refresh as RefreshIcon,
+  Search as SearchIcon,
+  Visibility as ViewIcon,
 } from "@mui/icons-material";
 import {
-    Box,
-    Button,
-    Chip,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    IconButton,
-    InputLabel,
-    MenuItem,
-    Paper,
-    Select,
-    TextField,
-    Typography,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+  Typography,
 } from "@mui/material";
 import {
-    DataGrid,
-    GridActionsCellItem,
-    GridToolbar,
-    type GridColDef,
+  DataGrid,
+  GridActionsCellItem,
+  GridToolbar,
+  type GridColDef,
 } from "@mui/x-data-grid";
 import {
-    useCreate,
-    useDelete,
-    useList,
-    useUpdate
+  useCreate,
+  useDelete,
+  useList,
+  useUpdate
 } from "@refinedev/core";
 import { useState } from "react";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -298,21 +298,48 @@ export default function DocumentsPage() {
 
       {/* 데이터 그리드 */}
       <Paper sx={{ height: "calc(100vh - 150px)", width: "100%" }}>
-        <DataGrid
-          rows={documentsData?.data || []}
-          columns={columns}
-          loading={isLoading}
-          pageSizeOptions={[10, 20, 50]}
-          checkboxSelection
-          disableRowSelectionOnClick
-          slots={{ toolbar: GridToolbar }}
-          slotProps={{
-            toolbar: {
-              showQuickFilter: true,
-              quickFilterProps: { debounceMs: 500 },
-            },
-          }}
-        />
+        {!isLoading && (!documentsData?.data || documentsData.data.length === 0) ? (
+          <Box
+            sx={{
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 2,
+            }}
+          >
+            <Typography variant="h6" color="text.secondary">
+              문서가 없습니다
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              새 문서를 추가하여 시작해보세요
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog()}
+            >
+              {t("actions.add")}
+            </Button>
+          </Box>
+        ) : (
+          <DataGrid
+            rows={documentsData?.data || []}
+            columns={columns}
+            loading={isLoading}
+            pageSizeOptions={[10, 20, 50]}
+            checkboxSelection
+            disableRowSelectionOnClick
+            slots={{ toolbar: GridToolbar }}
+            slotProps={{
+              toolbar: {
+                showQuickFilter: true,
+                quickFilterProps: { debounceMs: 500 },
+              },
+            }}
+          />
+        )}
       </Paper>
 
       {/* 문서 추가/수정 다이얼로그 */}

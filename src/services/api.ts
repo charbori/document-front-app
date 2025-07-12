@@ -1,15 +1,15 @@
 import axios, { AxiosResponse } from 'axios';
 import {
-    ApiError,
-    CompareDocumentsRequest,
-    CompareTextRequest,
-    CreateDocumentRequest,
-    DiffResult,
-    DiffResultsQueryParams,
-    Document,
-    DocumentsQueryParams,
-    PaginatedResponse,
-    UpdateDocumentRequest
+  ApiError,
+  CompareDocumentsRequest,
+  CompareTextRequest,
+  CreateDocumentRequest,
+  DiffResult,
+  DiffResultsQueryParams,
+  Document,
+  DocumentsQueryParams,
+  PaginatedResponse,
+  UpdateDocumentRequest
 } from '../types/api';
 
 // API 기본 설정
@@ -38,10 +38,32 @@ apiClient.interceptors.request.use(
   }
 );
 
-// 응답 인터셉터 - 에러 처리
+// 응답 인터셉터 - 인증 및 에러 처리
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // 401 에러 (인증 실패/토큰 만료) 처리
+    if (error.response?.status === 401) {
+      console.warn('인증 토큰이 만료되었습니다. 로그인 페이지로 이동합니다.');
+      
+      // 토큰 제거
+      removeAuthToken();
+      
+      // 쿠키에서도 토큰 제거 (클라이언트 사이드에서만)
+      if (typeof window !== 'undefined') {
+        import('js-cookie').then(({ default: Cookies }) => {
+          Cookies.remove('auth', { path: '/' });
+        });
+        
+        // 로그인 페이지로 리다이렉트 (compare 페이지는 제외)
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/compare') {
+          const currentPath = window.location.pathname + window.location.search;
+          window.location.href = `/login?to=${encodeURIComponent(currentPath)}`;
+        }
+      }
+    }
+    
+    // API 에러 객체 생성
     const apiError: ApiError = {
       status: error.response?.status || 500,
       message: error.response?.data?.message || error.message || '알 수 없는 오류가 발생했습니다',
@@ -118,6 +140,37 @@ export const compareApi = {
   // 텍스트 직접 비교
   compareText: async (data: CompareTextRequest): Promise<DiffResult> => {
     const response: AxiosResponse<DiffResult> = await apiClient.post('/compare', data);
+    return response.data;
+  },
+
+
+  saveDiffResult: async (data: CompareTextRequest): Promise<DiffResult> => {
+    const originalDocument = await documentApi.createDocument({
+      title: data.diffTitle,
+      content: data.originalText,
+      description: data.diffTitle,
+      status: 'DRAFT',
+      fileName: data.originalText.slice(0, 10),
+      fileType: 'text',
+      version: '1.0',
+    });
+
+    const compareDocument = await documentApi.createDocument({
+      title: data.diffTitle,
+      content: data.compareText,
+      description: data.diffTitle,
+      status: 'DRAFT',
+      fileName: data.compareText.slice(0, 10),
+      fileType: 'text',
+      version: '1.0',
+    });
+
+    const response: AxiosResponse<DiffResult> = await apiClient.post('/compare',{
+      originalDocumentId: originalDocument.data,
+      compareDocumentId: compareDocument.data,
+      diffTitle: data.diffTitle,
+      diffType: 'text',
+    });
     return response.data;
   },
 
