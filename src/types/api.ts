@@ -70,6 +70,9 @@ export interface DiffResult {
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
+  addedLines: number;
+  deletedLines: number;
+  modifiedLines: number;
 }
 
 export interface DiffData {
@@ -79,7 +82,7 @@ export interface DiffData {
 }
 
 export interface DiffChange {
-  type: 'added' | 'removed' | 'modified' | 'unchanged';
+  type: 'added' | 'removed' | 'unchanged';
   lineNumber: number;
   content: string;
   originalLine?: number;
@@ -110,6 +113,59 @@ export interface DiffResultsQueryParams {
   _sort?: string;
   _order?: 'asc' | 'desc';
 }
+
+// 백엔드 응답 타입 (실제 백엔드에서 받아오는 형식)
+export interface BackendDiffResult {
+  id: number;
+  user: {
+    id: number;
+    username: string;
+    password: null;
+    role: string;
+    verification: null;
+    verificationCode: null;
+    verificationAt: null;
+    createdAt: null;
+  };
+  originalDocument: {
+    id: number;
+    user: any;
+    title: string;
+    content: string;
+    description: string;
+    status: string;
+    fileName: string;
+    fileType: string;
+    version: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  compareDocument: {
+    id: number;
+    user: any;
+    title: string;
+    content: string;
+    description: string;
+    status: string;
+    fileName: string;
+    fileType: string;
+    version: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  diffResult: string;
+  htmlDiff: string;
+  diffTitle: string;
+  diffType: string;
+  status: string;
+  addedLines: number;
+  deletedLines: number;
+  modifiedLines: number;
+  createdAt: string;
+  diffLines?: any[]; // 더 이상 사용하지 않지만 백엔드 호환성을 위해 유지
+}
+
+
 
 // 에러 타입
 export interface ApiError {

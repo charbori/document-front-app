@@ -34,8 +34,12 @@ const nextConfig = {
                 destination: `${STORAGE_URL}/:path*`,
             },
             {
-                source: "/:path*",
-                destination: `${API_URL}/:path*`,
+                source: "/auth/:path*",
+                destination: `${API_URL}/auth/:path*`,
+            },
+            {
+                source: "/api/:path*",
+                destination: `${API_URL}/api/:path*`,
             },
         ];
     },

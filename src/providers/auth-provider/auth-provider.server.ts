@@ -4,7 +4,7 @@ import { validateToken } from "../../utils/jwt_util";
 export const authProviderServer = {
     check: async () => {
         try {
-            const cookieStore = cookies();
+        const cookieStore = cookies();
             const authCookie = cookieStore.get("auth");
 
             // 토큰이 없는 경우
@@ -39,17 +39,17 @@ export const authProviderServer = {
             };
         } catch (error) {
             console.error('[Server] 인증 체크 중 오류 발생:', error);
-            return {
-                success: false,
-                authenticated: false,
-                logout: true,
-                redirectTo: "/login",
-            };
+        return {
+            success: false,
+            authenticated: false,
+            logout: true,
+            redirectTo: "/login",
+        };
         }
     },
     getIdentity: async () => {
         try {
-            const cookieStore = cookies();
+        const cookieStore = cookies();
             const authCookie = cookieStore.get("auth");
 
             if (!authCookie || !authCookie.value) {

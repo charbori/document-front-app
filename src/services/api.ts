@@ -1,11 +1,15 @@
 import axios, { AxiosResponse } from 'axios';
 import {
   ApiError,
+  BackendDiffResult,
   CompareDocumentsRequest,
   CompareTextRequest,
   CreateDocumentRequest,
+  DiffChange,
+  DiffData,
   DiffResult,
   DiffResultsQueryParams,
+  DiffStatistics,
   Document,
   DocumentsQueryParams,
   PaginatedResponse,
@@ -23,6 +27,96 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// 백엔드 응답을 프론트엔드 형식으로 변환하는 핸들러
+const transformBackendDiffResult = (backendResult: BackendDiffResult): DiffResult => {
+  console.log('백엔드 응답 변환 시작:', backendResult);
+
+  // diffResult 문자열을 라인별로 분할하여 DiffChange 배열로 변환
+  const diffLines = backendResult.diffResult.split('\n');
+  
+  const diffChanges: DiffChange[] = diffLines
+    .filter(line => line.length > 0) // 빈 라인 제거
+    .map((line, index) => {
+      let type: 'added' | 'removed' | 'unchanged';
+      let content: string;
+      
+      // 라인의 첫 글자로 operation 판단
+      if (line.startsWith('+')) {
+        type = 'added';
+        content = line.substring(1); // + 제거
+      } else if (line.startsWith('-')) {
+        type = 'removed';
+        content = line.substring(1); // - 제거
+      } else {
+        type = 'unchanged';
+        content = line.startsWith('  ') ? line.substring(2) : line; // 공백 2개 제거 (있는 경우)
+      }
+
+      return {
+        type,
+        lineNumber: index + 1,
+        content,
+        originalLine: index + 1,
+        compareLine: index + 1,
+      };
+    });
+
+  // 통계 계산 (실제 분석된 라인 기준)
+  const totalLines = diffChanges.length;
+  const addedLines = diffChanges.filter(change => change.type === 'added').length;
+  const removedLines = diffChanges.filter(change => change.type === 'removed').length;
+  const unchangedLines = diffChanges.filter(change => change.type === 'unchanged').length;
+
+  // 유사도 계산 (변경되지 않은 줄의 비율)
+  const similarity = totalLines > 0 ? unchangedLines / totalLines : 1;
+
+  const statistics: DiffStatistics = {
+    totalLines,
+    addedLines,
+    removedLines,
+    modifiedLines: 0, // modified는 더 이상 사용하지 않음
+    similarity,
+  };
+
+  // 요약 생성
+  let summary = '';
+  if (addedLines === 0 && removedLines === 0) {
+    summary = '두 문서가 완전히 동일합니다.';
+  } else {
+    const changesList = [];
+    if (addedLines > 0) changesList.push(`${addedLines}줄 추가`);
+    if (removedLines > 0) changesList.push(`${removedLines}줄 삭제`);
+    summary = `${changesList.join(', ')}되었습니다. 유사도: ${(similarity * 100).toFixed(1)}%`;
+  }
+
+  const diffData: DiffData = {
+    changes: diffChanges,
+    statistics,
+    summary,
+  };
+
+  // 프론트엔드 형식으로 변환
+  const frontendResult: DiffResult = {
+    id: backendResult.id,
+    diffTitle: backendResult.diffTitle,
+    diffType: 'text',
+    originalDocumentId: backendResult.originalDocument?.id,
+    compareDocumentId: backendResult.compareDocument?.id,
+    originalText: backendResult.originalDocument?.content,
+    compareText: backendResult.compareDocument?.content,
+    diffData,
+    createdAt: backendResult.createdAt,
+    updatedAt: backendResult.createdAt, // 백엔드에 updatedAt이 없으면 createdAt 사용
+    createdBy: backendResult.user?.username,
+    addedLines,
+    deletedLines: removedLines,
+    modifiedLines: 0,
+  };
+
+  console.log('변환된 프론트엔드 결과:', frontendResult);
+  return frontendResult;
+};
 
 // 인터셉터 설정 - 인증 토큰 자동 추가
 apiClient.interceptors.request.use(
@@ -133,14 +227,14 @@ export const documentApi = {
 export const compareApi = {
   // 문서 간 비교
   compareDocuments: async (data: CompareDocumentsRequest): Promise<DiffResult> => {
-    const response: AxiosResponse<DiffResult> = await apiClient.post('/compare', data);
-    return response.data;
+    const response: AxiosResponse<BackendDiffResult> = await apiClient.post('/compare', data);
+    return transformBackendDiffResult(response.data);
   },
 
   // 텍스트 직접 비교
   compareText: async (data: CompareTextRequest): Promise<DiffResult> => {
-    const response: AxiosResponse<DiffResult> = await apiClient.post('/compare', data);
-    return response.data;
+    const response: AxiosResponse<BackendDiffResult> = await apiClient.post('/compare', data);
+    return transformBackendDiffResult(response.data);
   },
 
 
@@ -165,25 +259,25 @@ export const compareApi = {
       version: '1.0',
     });
 
-    const response: AxiosResponse<DiffResult> = await apiClient.post('/compare',{
-      originalDocumentId: originalDocument.data,
-      compareDocumentId: compareDocument.data,
+    const response: AxiosResponse<BackendDiffResult> = await apiClient.post('/compare',{
+      originalDocumentId: originalDocument.id,
+      compareDocumentId: compareDocument.id,
       diffTitle: data.diffTitle,
       diffType: 'text',
     });
-    return response.data;
+    return transformBackendDiffResult(response.data);
   },
 
   // Diff 결과 목록 조회
   getDiffResults: async (params: DiffResultsQueryParams = {}): Promise<PaginatedResponse<DiffResult>> => {
-    const response: AxiosResponse<DiffResult[]> = await apiClient.get('/results', { params });
+    const response: AxiosResponse<BackendDiffResult[]> = await apiClient.get('/results', { params });
     
     const total = parseInt(response.headers['x-total-count'] || '0');
     const start = params._start || 0;
     const end = params._end || 10;
     
     return {
-      data: response.data,
+      data: response.data.map(transformBackendDiffResult),
       total,
       page: Math.floor(start / (end - start)) + 1,
       limit: end - start,
@@ -192,8 +286,8 @@ export const compareApi = {
 
   // 특정 Diff 결과 조회
   getDiffResult: async (id: number): Promise<DiffResult> => {
-    const response: AxiosResponse<DiffResult> = await apiClient.get(`/result/${id}`);
-    return response.data;
+    const response: AxiosResponse<BackendDiffResult> = await apiClient.get(`/result/${id}`);
+    return transformBackendDiffResult(response.data);
   },
 
   // Diff 결과 삭제

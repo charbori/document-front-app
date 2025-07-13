@@ -19,7 +19,7 @@ export default async function handler(
                 password: req.body.password,
             });
             
-            authToken = response.data.data;
+                authToken = response.data.data;
             
             if (authToken) {
                 // Next.js API Routes에서 올바른 쿠키 설정 방법

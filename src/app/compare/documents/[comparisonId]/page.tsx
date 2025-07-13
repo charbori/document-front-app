@@ -2,15 +2,12 @@
 
 import {
     Compare as CompareIcon,
-    ContentCopy as CopyIcon,
     Download as DownloadIcon,
+    Edit as EditIcon,
     History as HistoryIcon,
     Login as LoginIcon,
     Logout as LogoutIcon,
     Person as PersonIcon,
-    Refresh as RefreshIcon,
-    Save as SaveIcon,
-    SwapHoriz as SwapIcon,
     ViewColumn as ViewColumnIcon,
     ViewStream as ViewStreamIcon
 } from "@mui/icons-material";
@@ -24,21 +21,12 @@ import {
     CardContent,
     Chip,
     Container,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
     Divider,
-    FormControl,
-    Grid,
     IconButton,
-    InputLabel,
     Menu,
     MenuItem,
     Paper,
-    Select,
     Snackbar,
-    TextField,
     ToggleButton,
     ToggleButtonGroup,
     Toolbar,
@@ -47,14 +35,10 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
-import { api } from "../../services/api";
-import { useComparePageContext } from "./compare-page-provider";
-
-interface DocumentData {
-    title: string;
-    content: string;
-}
+import { useEffect, useState } from "react";
+import { api } from "../../../../services/api";
+import { DiffChange, DiffResult } from "../../../../types/api";
+import { useComparePageContext } from "../../compare-page-provider";
 
 interface DiffLine {
     type: 'added' | 'removed' | 'unchanged' | 'modified';
@@ -77,51 +61,21 @@ interface SideBySideLineData {
 
 type ViewMode = 'side-by-side' | 'unified';
 
-// 샘플 문서 데이터
-const sampleDocuments = {
-    original: {
-        title: "원본 문서",
-        content: `안녕하세요! 이것은 원본 문서입니다.
-이 문서는 비교 테스트를 위한 예시 문서입니다.
-여기에는 여러 줄의 텍스트가 포함되어 있습니다.
-이 줄은 변경되지 않을 예정입니다.
-이 줄은 수정될 예정입니다.
-이 줄은 삭제될 예정입니다.
-마지막 줄입니다.`
-    },
-    modified: {
-        title: "수정된 문서",
-        content: `안녕하세요! 이것은 수정된 문서입니다.
-이 문서는 비교 테스트를 위한 예시 문서입니다.
-여기에는 여러 줄의 텍스트가 포함되어 있습니다.
-이 줄은 변경되지 않을 예정입니다.
-이 줄은 수정되었습니다!
-새로운 줄이 추가되었습니다.
-마지막 줄입니다.`
-    }
-};
-
-export default function ComparePage() {
+export default function DocumentComparisonResultPage({
+    params
+}: {
+    params: { comparisonId: string }
+}) {
     const theme = useTheme();
     const router = useRouter();
     const { authData, logout } = useComparePageContext();
+    const comparisonId = parseInt(params.comparisonId);
     
-    const [leftDoc, setLeftDoc] = useState<DocumentData>({
-        title: "",
-        content: ""
-    });
-    const [rightDoc, setRightDoc] = useState<DocumentData>({
-        title: "",
-        content: ""
-    });
     const [diffResult, setDiffResult] = useState<DiffLine[]>([]);
     const [sideBySideData, setSideBySideData] = useState<SideBySideLineData[]>([]);
-    const [showDiff, setShowDiff] = useState(false);
     const [viewMode, setViewMode] = useState<ViewMode>('side-by-side');
-
-    const [openSaveDialog, setOpenSaveDialog] = useState(false);
-    const [saveTitle, setSaveTitle] = useState('');
-    const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [loadedComparison, setLoadedComparison] = useState<DiffResult | null>(null);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning'>('success');
 
@@ -130,6 +84,225 @@ export default function ComparePage() {
 
     const isAuthenticated = authData.authenticated;
     const userIdentity = authData.userIdentity;
+
+    // 저장된 비교 결과 로드
+    useEffect(() => {
+        console.log('useEffect triggered:', { comparisonId, isAuthenticated });
+        if (comparisonId) {
+            loadComparisonResult(comparisonId);
+        }
+    }, [comparisonId]);
+
+    const loadComparisonResult = async (id: number) => {
+        console.log('=== 비교 결과 로드 시작 ===');
+        console.log('요청 ID:', id);
+        
+        setIsLoading(true);
+        setSnackbarMessage('');
+        
+        try {
+            const result = await api.compare.getDiffResult(id);
+            
+            console.log('=== API 응답 성공 ===');
+            console.log('응답 데이터:', result);
+            
+            if (!result) {
+                throw new Error('API 응답이 비어있습니다.');
+            }
+
+            setLoadedComparison(result);
+            
+            // 저장된 비교 결과를 UI에 맞게 변환
+            console.log('UI 변환 시작');
+            convertDiffResultToUI(result);
+            
+            setSnackbarMessage('비교 결과를 성공적으로 불러왔습니다.');
+            setSnackbarSeverity('success');
+            
+            console.log('=== 비교 결과 로드 완료 ===');
+            
+        } catch (error: any) {
+            console.error('=== 비교 결과 로드 실패 ===');
+            console.error('에러:', error);
+            
+            let errorMessage = '비교 결과를 불러오는데 실패했습니다.';
+            
+            if (error.status === 401) {
+                errorMessage = '인증이 필요합니다. 로그인 후 다시 시도해주세요.';
+            } else if (error.status === 403) {
+                errorMessage = '접근 권한이 없습니다.';
+            } else if (error.status === 404) {
+                errorMessage = '요청한 비교 결과를 찾을 수 없습니다.';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            setSnackbarMessage(errorMessage);
+            setSnackbarSeverity('error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // DiffResult를 UI에 맞게 변환
+    const convertDiffResultToUI = (result: DiffResult) => {
+        console.log('convertDiffResultToUI called with:', result);
+        
+        // 빈 데이터 처리
+        if (!result.diffData || !result.diffData.changes || result.diffData.changes.length === 0) {
+            console.log('No changes found in diffData');
+            // 원본 텍스트와 비교 텍스트가 있다면 직접 비교
+            if (result.originalText && result.compareText) {
+                console.log('Using original text for comparison');
+                generateDiffFromTexts(result.originalText, result.compareText);
+                return;
+            }
+            
+            // 완전히 빈 데이터인 경우
+            setDiffResult([]);
+            setSideBySideData([]);
+            return;
+        }
+
+        const changes = result.diffData.changes;
+        const unifiedResult: DiffLine[] = [];
+        const sideByResult: SideBySideLineData[] = [];
+
+        // 변경 사항을 라인별로 그룹화
+        const lineMap = new Map<number, DiffChange[]>();
+        changes.forEach(change => {
+            if (!lineMap.has(change.lineNumber)) {
+                lineMap.set(change.lineNumber, []);
+            }
+            lineMap.get(change.lineNumber)!.push(change);
+        });
+
+        // 라인별로 처리
+        const sortedLines = Array.from(lineMap.keys()).sort((a, b) => a - b);
+        
+        sortedLines.forEach(lineNumber => {
+            const lineChanges = lineMap.get(lineNumber)!;
+            
+            lineChanges.forEach(change => {
+                // 통합 뷰용 데이터
+                unifiedResult.push({
+                    type: change.type,
+                    content: change.content,
+                    lineNumber: change.lineNumber
+                });
+                
+                // 사이드 바이 사이드용 데이터
+                if (change.type === 'added' || change.type === 'modified') {
+                    sideByResult.push({
+                        leftLine: change.type === 'modified' ? {
+                            content: change.content,
+                            lineNumber: change.originalLine || change.lineNumber,
+                            hasChange: true
+                        } : null,
+                        rightLine: {
+                            content: change.content,
+                            lineNumber: change.compareLine || change.lineNumber,
+                            hasChange: true
+                        }
+                    });
+                } else if (change.type === 'removed') {
+                    sideByResult.push({
+                        leftLine: {
+                            content: change.content,
+                            lineNumber: change.originalLine || change.lineNumber,
+                            hasChange: true
+                        },
+                        rightLine: null
+                    });
+                } else {
+                    sideByResult.push({
+                        leftLine: {
+                            content: change.content,
+                            lineNumber: change.originalLine || change.lineNumber,
+                            hasChange: false
+                        },
+                        rightLine: {
+                            content: change.content,
+                            lineNumber: change.compareLine || change.lineNumber,
+                            hasChange: false
+                        }
+                    });
+                }
+            });
+        });
+
+        setDiffResult(unifiedResult);
+        setSideBySideData(sideByResult);
+        console.log('Generated diff from changes:', { unifiedResult, sideByResult });
+    };
+
+    // 텍스트에서 직접 diff 생성
+    const generateDiffFromTexts = (originalText: string, compareText: string) => {
+        const leftLines = originalText.split('\n');
+        const rightLines = compareText.split('\n');
+        const unifiedResult: DiffLine[] = [];
+        const sideByResult: SideBySideLineData[] = [];
+
+        const maxLines = Math.max(leftLines.length, rightLines.length);
+        
+        for (let i = 0; i < maxLines; i++) {
+            const leftLine = leftLines[i] || '';
+            const rightLine = rightLines[i] || '';
+            
+            if (leftLine === rightLine) {
+                unifiedResult.push({
+                    type: 'unchanged',
+                    content: leftLine,
+                    lineNumber: i + 1
+                });
+                
+                sideByResult.push({
+                    leftLine: {
+                        content: leftLine,
+                        lineNumber: i + 1,
+                        hasChange: false
+                    },
+                    rightLine: {
+                        content: rightLine,
+                        lineNumber: i + 1,
+                        hasChange: false
+                    }
+                });
+            } else {
+                if (leftLine) {
+                    unifiedResult.push({
+                        type: 'removed',
+                        content: leftLine,
+                        lineNumber: i + 1
+                    });
+                }
+                if (rightLine) {
+                    unifiedResult.push({
+                        type: 'added',
+                        content: rightLine,
+                        lineNumber: i + 1
+                    });
+                }
+                
+                sideByResult.push({
+                    leftLine: leftLines[i] !== undefined ? {
+                        content: leftLine,
+                        lineNumber: i + 1,
+                        hasChange: true
+                    } : null,
+                    rightLine: rightLines[i] !== undefined ? {
+                        content: rightLine,
+                        lineNumber: i + 1,
+                        hasChange: true
+                    } : null
+                });
+            }
+        }
+        
+        setDiffResult(unifiedResult);
+        setSideBySideData(sideByResult);
+        console.log('Generated diff from texts:', { unifiedResult, sideByResult });
+    };
 
     // 사용자 메뉴 열기
     const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -151,115 +324,6 @@ export default function ComparePage() {
         handleUserMenuClose();
     };
 
-    // 향상된 diff 알고리즘
-    const generateDiff = useCallback(() => {
-        const leftLines = leftDoc.content.split('\n');
-        const rightLines = rightDoc.content.split('\n');
-        
-        // 통합 뷰용 diff 결과
-        const unifiedResult: DiffLine[] = [];
-        
-        // 사이드 바이 사이드용 diff 결과
-        const sideByResult: SideBySideLineData[] = [];
-
-        const maxLines = Math.max(leftLines.length, rightLines.length);
-        
-        for (let i = 0; i < maxLines; i++) {
-            const leftLine = leftLines[i] || '';
-            const rightLine = rightLines[i] || '';
-            
-            if (leftLine === rightLine) {
-                if (leftLine.trim() !== '' || rightLine.trim() !== '') {
-                    // 통합 뷰
-                    unifiedResult.push({
-                        type: 'unchanged',
-                        content: leftLine,
-                        lineNumber: i + 1
-                    });
-                    
-                    // 사이드 바이 사이드
-                    sideByResult.push({
-                        leftLine: {
-                            content: leftLine,
-                            lineNumber: i + 1,
-                            hasChange: false
-                        },
-                        rightLine: {
-                            content: rightLine,
-                            lineNumber: i + 1,
-                            hasChange: false
-                        }
-                    });
-                }
-            } else {
-                // 통합 뷰
-                if (leftLine !== undefined && leftLine.trim() !== '') {
-                    unifiedResult.push({
-                        type: 'removed',
-                        content: leftLine,
-                        lineNumber: i + 1
-                    });
-                }
-                if (rightLine !== undefined && rightLine.trim() !== '') {
-                    unifiedResult.push({
-                        type: 'added',
-                        content: rightLine,
-                        lineNumber: i + 1
-                    });
-                }
-                
-                // 사이드 바이 사이드
-                sideByResult.push({
-                    leftLine: leftLines[i] !== undefined ? {
-                        content: leftLine,
-                        lineNumber: i + 1,
-                        hasChange: true
-                    } : null,
-                    rightLine: rightLines[i] !== undefined ? {
-                        content: rightLine,
-                        lineNumber: i + 1,
-                        hasChange: true
-                    } : null
-                });
-            }
-        }
-        
-        setDiffResult(unifiedResult);
-        setSideBySideData(sideByResult);
-        setShowDiff(true);
-    }, [leftDoc.content, rightDoc.content]);
-
-    // 문서 교환
-    const swapDocuments = () => {
-        const temp = { ...leftDoc };
-        setLeftDoc(rightDoc);
-        setRightDoc(temp);
-        setShowDiff(false);
-    };
-
-    // 문서 초기화
-    const clearDocuments = () => {
-        setLeftDoc({ title: "", content: "" });
-        setRightDoc({ title: "", content: "" });
-        setDiffResult([]);
-        setSideBySideData([]);
-        setShowDiff(false);
-    };
-
-    // 샘플 문서 로드
-    const loadSampleDocuments = () => {
-        setLeftDoc(sampleDocuments.original);
-        setRightDoc(sampleDocuments.modified);
-        setShowDiff(false);
-    };
-
-    // 클립보드 복사
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-        setSnackbarMessage('클립보드에 복사되었습니다!');
-        setSnackbarSeverity('success');
-    };
-
     // 차이점 다운로드
     const downloadDiff = () => {
         const diffText = diffResult.map(line => {
@@ -272,7 +336,7 @@ export default function ComparePage() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `diff-${new Date().toISOString().split('T')[0]}.txt`;
+        a.download = `diff-${loadedComparison?.diffTitle || 'result'}-${new Date().toISOString().split('T')[0]}.txt`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -304,81 +368,31 @@ export default function ComparePage() {
         }
     };
 
-    // 비교 결과 저장 (로그인된 사용자만)
-    const handleSaveComparison = async () => {
-        if (!isAuthenticated) {
-            setSnackbarMessage('로그인된 사용자만 비교 결과를 저장할 수 있습니다.');
-            setSnackbarSeverity('error');
-            return;
-        }
-
-        if (!saveTitle.trim()) {
-            setSnackbarMessage('제목을 입력해주세요.');
-            setSnackbarSeverity('error');
-            return;
-        }
-
-        if (!leftDoc.content.trim() || !rightDoc.content.trim()) {
-            setSnackbarMessage('비교할 문서 내용을 입력해주세요.');
-            setSnackbarSeverity('error');
-            return;
-        }
-
-        setIsSaving(true);
-        try {
-            const compareRequest = {
-                originalText: leftDoc.content,
-                compareText: rightDoc.content,
-                diffTitle: saveTitle.trim(),
-                diffType: 'text' as const
-            };
-
-            const result = await api.compare.saveDiffResult(compareRequest);
-            
-            setSnackbarMessage('비교 결과가 성공적으로 저장되었습니다.');
-            setSnackbarSeverity('success');
-            setOpenSaveDialog(false);
-            setSaveTitle('');
-            
-            // 저장 후 결과 페이지로 이동
-            if (result.id) {
-                router.push(`/compare/documents/${result.id}`);
-            }
-            
-            console.log('저장된 비교 결과:', result);
-        } catch (error: any) {
-            console.error('비교 결과 저장 중 오류:', error);
-            setSnackbarMessage(error.message || '비교 결과 저장에 실패했습니다.');
-            setSnackbarSeverity('error');
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const handleOpenSaveDialog = () => {
-        if (!isAuthenticated) {
-            setSnackbarMessage('로그인된 사용자만 비교 결과를 저장할 수 있습니다.');
-            setSnackbarSeverity('error');
-            return;
-        }
-
-        // 기본 제목 설정
-        const defaultTitle = `${leftDoc.title || '원본 문서'} vs ${rightDoc.title || '비교 문서'} - ${new Date().toLocaleDateString()}`;
-        setSaveTitle(defaultTitle);
-        setOpenSaveDialog(true);
-    };
-
     // 차이점 통계
     const getStats = () => {
+        if (loadedComparison) {
+            const stats = loadedComparison;
+            const totalLines = loadedComparison.originalText?.split('\n').length || 0;
+            return {
+                added: stats.addedLines,
+                removed: stats.deletedLines,
+                unchanged: totalLines - stats.addedLines - stats.deletedLines - stats.modifiedLines,
+                modified: stats.modifiedLines,
+                total: totalLines
+            };
+        }
+        
         const added = diffResult.filter(line => line.type === 'added').length;
         const removed = diffResult.filter(line => line.type === 'removed').length;
         const unchanged = diffResult.filter(line => line.type === 'unchanged').length;
+        const modified = diffResult.filter(line => line.type === 'modified').length;
         
         return {
             added,
             removed,
             unchanged,
-            total: added + removed + unchanged
+            modified,
+            total: added + removed + unchanged + modified
         };
     };
 
@@ -389,7 +403,12 @@ export default function ComparePage() {
                 <Toolbar>
                     <CompareIcon sx={{ mr: 2 }} />
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        문서 비교 도구
+                        문서 비교 결과
+                        {loadedComparison && (
+                            <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                                ({loadedComparison.diffTitle})
+                            </Typography>
+                        )}
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                         {/* 로그인 상태에 따른 조건부 렌더링 */}
@@ -412,6 +431,14 @@ export default function ComparePage() {
                                     sx={{ mr: 1 }}
                                 >
                                     문서 관리
+                                </Button>
+                                <Button
+                                    component={Link}
+                                    href="/compare"
+                                    color="inherit"
+                                    sx={{ mr: 1 }}
+                                >
+                                    새 비교
                                 </Button>
                                 <IconButton
                                     color="inherit"
@@ -455,30 +482,31 @@ export default function ComparePage() {
                                 >
                                     로그인
                                 </Button>
+                                <Button
+                                    component={Link}
+                                    href="/compare"
+                                    color="inherit"
+                                    sx={{ mr: 1 }}
+                                >
+                                    새 비교
+                                </Button>
                                 <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
                                     로그인하면 비교 결과를 저장할 수 있습니다
                                 </Typography>
                             </>
                         )}
                         
-                        {!showDiff && (
-                            <>
-                                <IconButton 
-                                    color="inherit" 
-                                    onClick={swapDocuments}
-                                    title="문서 교환"
-                                >
-                                    <SwapIcon />
-                                </IconButton>
-                                <IconButton 
-                                    color="inherit" 
-                                    onClick={clearDocuments}
-                                    title="모두 초기화"
-                                >
-                                    <RefreshIcon />
-                                </IconButton>
-                            </>
-                        )}
+                        {/* 편집 모드로 가기 */}
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            onClick={() => router.push(`/compare/${comparisonId}`)}
+                            startIcon={<EditIcon />}
+                            sx={{ mr: 1 }}
+                        >
+                            편집 모드
+                        </Button>
+                        
                         {diffResult.length > 0 && (
                             <IconButton 
                                 color="inherit" 
@@ -493,98 +521,27 @@ export default function ComparePage() {
             </AppBar>
 
             <Container maxWidth="xl" sx={{ py: 3 }}>
-                {!showDiff ? (
-                    /* 편집 모드 */
-                    <Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                            <Typography variant="h4">문서 비교</Typography>
-                            <Box sx={{ display: 'flex', gap: 2 }}>
-                                <Button 
-                                    variant="outlined" 
-                                    onClick={loadSampleDocuments}
-                                    startIcon={<CopyIcon />}
-                                >
-                                    샘플 문서 로드
-                                </Button>
-                                <Button 
-                                    variant="contained" 
-                                    onClick={generateDiff}
-                                    disabled={!leftDoc.content.trim() || !rightDoc.content.trim()}
-                                    startIcon={<CompareIcon />}
-                                >
-                                    비교 시작
-                                </Button>
-                            </Box>
-                        </Box>
-
-                        <Grid container spacing={3}>
-                            <Grid item xs={12} md={6}>
-                                <Paper sx={{ p: 2, height: '100%' }}>
-                                    <Typography variant="h6" gutterBottom>
-                                        원본 문서
-                                    </Typography>
-                                    <TextField
-                                        placeholder="문서 제목을 입력하세요"
-                                        value={leftDoc.title}
-                                        onChange={(e) => setLeftDoc({...leftDoc, title: e.target.value})}
-                                        fullWidth
-                                        sx={{ mb: 2 }}
-                                    />
-                                    <TextField
-                                        placeholder="원본 문서의 내용을 입력하세요..."
-                                        value={leftDoc.content}
-                                        onChange={(e) => setLeftDoc({...leftDoc, content: e.target.value})}
-                                        fullWidth
-                                        multiline
-                                        rows={20}
-                                        sx={{ 
-                                            fontFamily: 'monospace',
-                                            '& .MuiOutlinedInput-root': {
-                                                fontFamily: 'monospace',
-                                                fontSize: '14px',
-                                                lineHeight: '1.5',
-                                            }
-                                        }}
-                                    />
-                                </Paper>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Paper sx={{ p: 2, height: '100%' }}>
-                                    <Typography variant="h6" gutterBottom>
-                                        비교 문서
-                                    </Typography>
-                                    <TextField
-                                        placeholder="문서 제목을 입력하세요"
-                                        value={rightDoc.title}
-                                        onChange={(e) => setRightDoc({...rightDoc, title: e.target.value})}
-                                        fullWidth
-                                        sx={{ mb: 2 }}
-                                    />
-                                    <TextField
-                                        placeholder="비교할 문서의 내용을 입력하세요..."
-                                        value={rightDoc.content}
-                                        onChange={(e) => setRightDoc({...rightDoc, content: e.target.value})}
-                                        fullWidth
-                                        multiline
-                                        rows={20}
-                                        sx={{ 
-                                            fontFamily: 'monospace',
-                                            '& .MuiOutlinedInput-root': {
-                                                fontFamily: 'monospace',
-                                                fontSize: '14px',
-                                                lineHeight: '1.5',
-                                            }
-                                        }}
-                                    />
-                                </Paper>
-                            </Grid>
-                        </Grid>
+                {isLoading ? (
+                    /* 로딩 상태 */
+                    <Box sx={{ textAlign: 'center', py: 8 }}>
+                        <Typography variant="h6" color="text.secondary">
+                            비교 결과를 불러오는 중...
+                        </Typography>
                     </Box>
                 ) : (
                     /* 비교 결과 표시 */
                     <Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-                            <Typography variant="h5">비교 결과</Typography>
+                            <Box>
+                                <Typography variant="h4" gutterBottom>
+                                    {loadedComparison ? loadedComparison.diffTitle : '비교 결과'}
+                                </Typography>
+                                {loadedComparison && (
+                                    <Typography variant="body2" color="text.secondary">
+                                        생성일: {new Date(loadedComparison.createdAt).toLocaleString()}
+                                    </Typography>
+                                )}
+                            </Box>
                             
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                 {/* 뷰 모드 토글 */}
@@ -603,46 +560,8 @@ export default function ComparePage() {
                                         통합 뷰
                                     </ToggleButton>
                                 </ToggleButtonGroup>
-                                
-                                {/* 저장 버튼 */}
-                                {isAuthenticated && (
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={handleOpenSaveDialog}
-                                        startIcon={<SaveIcon />}
-                                    >
-                                        저장
-                                    </Button>
-                                )}
-                                
-                                <Button 
-                                    variant="outlined" 
-                                    onClick={() => setShowDiff(false)}
-                                >
-                                    편집 모드로 돌아가기
-                                </Button>
                             </Box>
                         </Box>
-
-                        {/* 제목 비교 */}
-                        {(leftDoc.title || rightDoc.title) && (
-                            <Card sx={{ mb: 3 }}>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>문서 제목</Typography>
-                                    <Box sx={{ display: 'flex', gap: 2 }}>
-                                        <Box sx={{ flex: 1 }}>
-                                            <Typography variant="subtitle2" color="error">원본</Typography>
-                                            <Typography variant="body2">{leftDoc.title || '(제목 없음)'}</Typography>
-                                        </Box>
-                                        <Box sx={{ flex: 1 }}>
-                                            <Typography variant="subtitle2" color="success.main">비교</Typography>
-                                            <Typography variant="body2">{rightDoc.title || '(제목 없음)'}</Typography>
-                                        </Box>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        )}
 
                         {/* 통계 정보 */}
                         <Card sx={{ mb: 3 }}>
@@ -660,6 +579,11 @@ export default function ComparePage() {
                                         variant="outlined"
                                     />
                                     <Chip 
+                                        label={`수정: ${getStats().modified}줄`} 
+                                        color="warning" 
+                                        variant="outlined"
+                                    />
+                                    <Chip 
                                         label={`변경 없음: ${getStats().unchanged}줄`} 
                                         color="default" 
                                         variant="outlined"
@@ -669,16 +593,69 @@ export default function ComparePage() {
                                         color="primary" 
                                         variant="outlined"
                                     />
+                                    {loadedComparison && (
+                                        <Chip 
+                                            label="0%"
+                                            color="info" 
+                                            variant="outlined"
+                                        />
+                                    )}
                                 </Box>
                             </CardContent>
                         </Card>
 
+                        {/* 메타데이터 */}
+                        {loadedComparison && (
+                            <Card sx={{ mb: 3 }}>
+                                <CardContent>
+                                    <Typography variant="h6" gutterBottom>메타데이터</Typography>
+                                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 2 }}>
+                                        <Box>
+                                            <Typography variant="subtitle2" color="text.secondary">
+                                                비교 타입
+                                            </Typography>
+                                            <Typography variant="body2">
+                                                {loadedComparison.diffType}
+                                            </Typography>
+                                        </Box>
+                                        <Box>
+                                            <Typography variant="subtitle2" color="text.secondary">
+                                                생성 시간
+                                            </Typography>
+                                            <Typography variant="body2">
+                                                {new Date(loadedComparison.createdAt).toLocaleString()}
+                                            </Typography>
+                                        </Box>
+                                        <Box>
+                                            <Typography variant="subtitle2" color="text.secondary">
+                                                수정 시간
+                                            </Typography>
+                                            <Typography variant="body2">
+                                                {new Date(loadedComparison.updatedAt).toLocaleString()}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {/* 비교 결과 */}
                         <Card>
                             <CardContent>
+                                <Typography variant="h6" gutterBottom>비교 결과</Typography>
                                 {viewMode === 'unified' ? (
                                     /* 통합 뷰 */
-                                    <Box sx={{ fontFamily: 'monospace', fontSize: '14px', lineHeight: '1.5' }}>
+                                    <Box sx={{ 
+                                        fontFamily: 'monospace', 
+                                        fontSize: '14px', 
+                                        lineHeight: '1.5',
+                                        maxHeight: '70vh',
+                                        overflow: 'auto',
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        borderRadius: 1,
+                                        p: 2
+                                    }}>
                                         {diffResult.map((line, index) => (
                                             <Box
                                                 key={index}
@@ -712,9 +689,14 @@ export default function ComparePage() {
                                     </Box>
                                 ) : (
                                     /* 사이드 바이 사이드 뷰 */
-                                    <Box sx={{ display: 'flex', gap: 2 }}>
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        gap: 2,
+                                        maxHeight: '70vh',
+                                        overflow: 'auto'
+                                    }}>
                                         {/* 원본 문서 (왼쪽) */}
-                                        <Paper sx={{ flex: 1, bgcolor: 'grey.50' }}>
+                                        <Paper sx={{ flex: 1, bgcolor: 'grey.50', minHeight: '60vh' }}>
                                             <Box sx={{ p: 2, bgcolor: 'grey.200', borderBottom: 1, borderColor: 'divider' }}>
                                                 <Typography variant="subtitle2" color="error">
                                                     원본 문서
@@ -762,7 +744,7 @@ export default function ComparePage() {
                                         </Paper>
 
                                         {/* 비교 문서 (오른쪽) */}
-                                        <Paper sx={{ flex: 1, bgcolor: 'grey.50' }}>
+                                        <Paper sx={{ flex: 1, bgcolor: 'grey.50', minHeight: '60vh' }}>
                                             <Box sx={{ p: 2, bgcolor: 'grey.200', borderBottom: 1, borderColor: 'divider' }}>
                                                 <Typography variant="subtitle2" color="success.main">
                                                     비교 문서
@@ -815,40 +797,6 @@ export default function ComparePage() {
                     </Box>
                 )}
             </Container>
-
-            {/* 저장 다이얼로그 */}
-            <Dialog open={openSaveDialog} onClose={() => setOpenSaveDialog(false)}>
-                <DialogTitle>비교 결과 저장</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        label="저장할 비교 결과 제목"
-                        value={saveTitle}
-                        onChange={(e) => setSaveTitle(e.target.value)}
-                        fullWidth
-                        margin="normal"
-                        variant="outlined"
-                        sx={{ mb: 2 }}
-                    />
-                    <FormControl fullWidth margin="normal">
-                        <InputLabel id="view-mode-label">뷰 모드</InputLabel>
-                        <Select
-                            labelId="view-mode-label"
-                            value={viewMode}
-                            label="뷰 모드"
-                            onChange={(e) => setViewMode(e.target.value as ViewMode)}
-                        >
-                            <MenuItem value="side-by-side">사이드 바이 사이드</MenuItem>
-                            <MenuItem value="unified">통합 뷰</MenuItem>
-                        </Select>
-                    </FormControl>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenSaveDialog(false)}>취소</Button>
-                    <Button variant="contained" onClick={handleSaveComparison} disabled={isSaving}>
-                        {isSaving ? '저장 중...' : '저장'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
 
             {/* 스낵바 */}
             <Snackbar 

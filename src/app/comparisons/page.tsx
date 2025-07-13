@@ -33,6 +33,7 @@ import {
     useDelete,
     useList,
 } from "@refinedev/core";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useTranslation } from "../../hooks/useTranslation";
 import { DiffResult, Document } from "../../types/api";
@@ -65,6 +66,7 @@ function TabPanel(props: TabPanelProps) {
 
 export default function ComparisonsPage() {
   const { t } = useTranslation();
+  const router = useRouter();
   const [openDialog, setOpenDialog] = useState(false);
   const [viewingComparison, setViewingComparison] = useState<DiffResult | null>(null);
   const [tabValue, setTabValue] = useState(0);
@@ -170,7 +172,8 @@ export default function ComparisonsPage() {
   };
 
   const handleView = (comparison: DiffResult) => {
-    setViewingComparison(comparison);
+    // 결과 전용 페이지로 이동
+    router.push(`/compare/documents/${comparison.id}`);
   };
 
   const getStatusChip = (diffData: any) => {
