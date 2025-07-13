@@ -164,9 +164,15 @@ export default function DocumentComparisonResultPage({
             return;
         }
 
+        // 원본 텍스트와 비교 텍스트가 있는 경우, 이를 사용하여 사이드 바이 사이드 뷰 생성
+        if (result.originalText && result.compareText) {
+            console.log('Using original and compare texts for side-by-side view');
+            generateDiffFromTexts(result.originalText, result.compareText);
+            return;
+        }
+
         const changes = result.diffData.changes;
         const unifiedResult: DiffLine[] = [];
-        const sideByResult: SideBySideLineData[] = [];
 
         // 변경 사항을 라인별로 그룹화
         const lineMap = new Map<number, DiffChange[]>();
@@ -177,7 +183,7 @@ export default function DocumentComparisonResultPage({
             lineMap.get(change.lineNumber)!.push(change);
         });
 
-        // 라인별로 처리
+        // 라인별로 처리 (통합 뷰용)
         const sortedLines = Array.from(lineMap.keys()).sort((a, b) => a - b);
         
         sortedLines.forEach(lineNumber => {
@@ -190,50 +196,14 @@ export default function DocumentComparisonResultPage({
                     content: change.content,
                     lineNumber: change.lineNumber
                 });
-                
-                // 사이드 바이 사이드용 데이터
-                if (change.type === 'added' || change.type === 'modified') {
-                    sideByResult.push({
-                        leftLine: change.type === 'modified' ? {
-                            content: change.content,
-                            lineNumber: change.originalLine || change.lineNumber,
-                            hasChange: true
-                        } : null,
-                        rightLine: {
-                            content: change.content,
-                            lineNumber: change.compareLine || change.lineNumber,
-                            hasChange: true
-                        }
-                    });
-                } else if (change.type === 'removed') {
-                    sideByResult.push({
-                        leftLine: {
-                            content: change.content,
-                            lineNumber: change.originalLine || change.lineNumber,
-                            hasChange: true
-                        },
-                        rightLine: null
-                    });
-                } else {
-                    sideByResult.push({
-                        leftLine: {
-                            content: change.content,
-                            lineNumber: change.originalLine || change.lineNumber,
-                            hasChange: false
-                        },
-                        rightLine: {
-                            content: change.content,
-                            lineNumber: change.compareLine || change.lineNumber,
-                            hasChange: false
-                        }
-                    });
-                }
             });
         });
 
         setDiffResult(unifiedResult);
-        setSideBySideData(sideByResult);
-        console.log('Generated diff from changes:', { unifiedResult, sideByResult });
+        
+        // 사이드 바이 사이드 뷰는 텍스트가 없으면 빈 배열로 설정
+        setSideBySideData([]);
+        console.log('Generated diff from changes (no original texts):', { unifiedResult });
     };
 
     // 텍스트에서 직접 diff 생성
@@ -649,7 +619,8 @@ export default function DocumentComparisonResultPage({
                                         fontFamily: 'monospace', 
                                         fontSize: '14px', 
                                         lineHeight: '1.5',
-                                        maxHeight: '70vh',
+                                        maxHeight: `${Math.max(400, diffResult.length * 25 + 100)}px`,
+                                        minHeight: '200px',
                                         overflow: 'auto',
                                         border: '1px solid',
                                         borderColor: 'divider',
@@ -669,6 +640,23 @@ export default function DocumentComparisonResultPage({
                                                     wordBreak: 'break-word'
                                                 }}
                                             >
+                                                {/* 라인 번호 */}
+                                                <Typography 
+                                                    variant="body2" 
+                                                    component="span"
+                                                    sx={{ 
+                                                        fontFamily: 'monospace',
+                                                        fontSize: '12px',
+                                                        lineHeight: '1.5',
+                                                        color: 'text.secondary',
+                                                        minWidth: '40px',
+                                                        textAlign: 'right',
+                                                        mr: 2,
+                                                        userSelect: 'none'
+                                                    }}
+                                                >
+                                                    {line.lineNumber}
+                                                </Typography>
                                                 <Typography 
                                                     variant="body2" 
                                                     component="span"
@@ -677,7 +665,8 @@ export default function DocumentComparisonResultPage({
                                                         fontSize: '14px',
                                                         lineHeight: '1.5',
                                                         color: line.type === 'added' ? 'success.main' : 
-                                                              line.type === 'removed' ? 'error.main' : 'text.primary'
+                                                              line.type === 'removed' ? 'error.main' : 'text.primary',
+                                                        flex: 1
                                                     }}
                                                 >
                                                     {line.type === 'added' ? '+ ' : 
@@ -692,11 +681,12 @@ export default function DocumentComparisonResultPage({
                                     <Box sx={{ 
                                         display: 'flex', 
                                         gap: 2,
-                                        maxHeight: '70vh',
+                                        maxHeight: `${Math.max(500, sideBySideData.length * 25 + 150)}px`,
+                                        minHeight: '300px',
                                         overflow: 'auto'
                                     }}>
                                         {/* 원본 문서 (왼쪽) */}
-                                        <Paper sx={{ flex: 1, bgcolor: 'grey.50', minHeight: '60vh' }}>
+                                        <Paper sx={{ flex: 1, bgcolor: 'grey.50', height: 'fit-content', minHeight: '300px' }}>
                                             <Box sx={{ p: 2, bgcolor: 'grey.200', borderBottom: 1, borderColor: 'divider' }}>
                                                 <Typography variant="subtitle2" color="error">
                                                     원본 문서
@@ -706,8 +696,7 @@ export default function DocumentComparisonResultPage({
                                                 p: 2, 
                                                 fontFamily: 'monospace', 
                                                 fontSize: '14px', 
-                                                lineHeight: '1.5',
-                                                minHeight: '500px'
+                                                lineHeight: '1.5'
                                             }}>
                                                 {sideBySideData.map((lineData, index) => (
                                                     <Box
@@ -726,6 +715,23 @@ export default function DocumentComparisonResultPage({
                                                             wordBreak: 'break-word'
                                                         }}
                                                     >
+                                                        {/* 라인 번호 */}
+                                                        <Typography 
+                                                            variant="body2" 
+                                                            component="span"
+                                                            sx={{ 
+                                                                fontFamily: 'monospace',
+                                                                fontSize: '12px',
+                                                                lineHeight: '1.5',
+                                                                color: 'text.secondary',
+                                                                minWidth: '35px',
+                                                                textAlign: 'right',
+                                                                mr: 1,
+                                                                userSelect: 'none'
+                                                            }}
+                                                        >
+                                                            {lineData.leftLine?.lineNumber || ''}
+                                                        </Typography>
                                                         <Typography 
                                                             variant="body2" 
                                                             component="span"
@@ -733,7 +739,8 @@ export default function DocumentComparisonResultPage({
                                                                 fontFamily: 'monospace',
                                                                 fontSize: '14px',
                                                                 lineHeight: '1.5',
-                                                                color: lineData.leftLine?.hasChange ? 'error.main' : 'text.primary'
+                                                                color: lineData.leftLine?.hasChange ? 'error.main' : 'text.primary',
+                                                                flex: 1
                                                             }}
                                                         >
                                                             {lineData.leftLine?.content || ''}
@@ -744,7 +751,7 @@ export default function DocumentComparisonResultPage({
                                         </Paper>
 
                                         {/* 비교 문서 (오른쪽) */}
-                                        <Paper sx={{ flex: 1, bgcolor: 'grey.50', minHeight: '60vh' }}>
+                                        <Paper sx={{ flex: 1, bgcolor: 'grey.50', height: 'fit-content', minHeight: '300px' }}>
                                             <Box sx={{ p: 2, bgcolor: 'grey.200', borderBottom: 1, borderColor: 'divider' }}>
                                                 <Typography variant="subtitle2" color="success.main">
                                                     비교 문서
@@ -754,8 +761,7 @@ export default function DocumentComparisonResultPage({
                                                 p: 2, 
                                                 fontFamily: 'monospace', 
                                                 fontSize: '14px', 
-                                                lineHeight: '1.5',
-                                                minHeight: '500px'
+                                                lineHeight: '1.5'
                                             }}>
                                                 {sideBySideData.map((lineData, index) => (
                                                     <Box
@@ -774,6 +780,23 @@ export default function DocumentComparisonResultPage({
                                                             wordBreak: 'break-word'
                                                         }}
                                                     >
+                                                        {/* 라인 번호 */}
+                                                        <Typography 
+                                                            variant="body2" 
+                                                            component="span"
+                                                            sx={{ 
+                                                                fontFamily: 'monospace',
+                                                                fontSize: '12px',
+                                                                lineHeight: '1.5',
+                                                                color: 'text.secondary',
+                                                                minWidth: '35px',
+                                                                textAlign: 'right',
+                                                                mr: 1,
+                                                                userSelect: 'none'
+                                                            }}
+                                                        >
+                                                            {lineData.rightLine?.lineNumber || ''}
+                                                        </Typography>
                                                         <Typography 
                                                             variant="body2" 
                                                             component="span"
@@ -781,7 +804,8 @@ export default function DocumentComparisonResultPage({
                                                                 fontFamily: 'monospace',
                                                                 fontSize: '14px',
                                                                 lineHeight: '1.5',
-                                                                color: lineData.rightLine?.hasChange ? 'success.main' : 'text.primary'
+                                                                color: lineData.rightLine?.hasChange ? 'success.main' : 'text.primary',
+                                                                flex: 1
                                                             }}
                                                         >
                                                             {lineData.rightLine?.content || ''}

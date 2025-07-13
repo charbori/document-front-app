@@ -69,9 +69,9 @@ export default function DocumentsPage() {
     title: "",
     content: "",
     description: "",
-    status: "DRAFT" as const,
+    status: "DRAFT" as "DRAFT" | "PUBLISHED" | "ARCHIVED",
     fileName: "",
-    fileType: "text" as const,
+    fileType: "text" as "text" | "markdown" | "code",
     version: "1.0",
   });
 
@@ -357,13 +357,6 @@ export default function DocumentsPage() {
               required
             />
             <TextField
-              label={t("documents.fileName")}
-              value={formData.fileName}
-              onChange={(e) => setFormData({ ...formData, fileName: e.target.value })}
-              fullWidth
-              required
-            />
-            <TextField
               label={t("form.description")}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -381,30 +374,6 @@ export default function DocumentsPage() {
               required
             />
             <Box sx={{ display: "flex", gap: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel>{t("documents.type")}</InputLabel>
-                <Select
-                  value={formData.fileType}
-                  onChange={(e) => setFormData({ ...formData, fileType: e.target.value as any })}
-                  label={t("documents.type")}
-                >
-                  <MenuItem value="text">Text</MenuItem>
-                  <MenuItem value="markdown">Markdown</MenuItem>
-                  <MenuItem value="code">Code</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl fullWidth>
-                <InputLabel>{t("table.status")}</InputLabel>
-                <Select
-                  value={formData.status}
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                  label={t("table.status")}
-                >
-                  <MenuItem value="DRAFT">{t("status.draft")}</MenuItem>
-                  <MenuItem value="PUBLISHED">{t("status.published")}</MenuItem>
-                  <MenuItem value="ARCHIVED">{t("status.archived")}</MenuItem>
-                </Select>
-              </FormControl>
               <TextField
                 label={t("documents.version")}
                 value={formData.version}
