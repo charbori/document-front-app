@@ -1,177 +1,112 @@
 "use client";
 
 import {
-    Compare as CompareIcon,
-    Delete as DeleteIcon,
-    Refresh as RefreshIcon,
-    Visibility as ViewIcon
+  Delete as DeleteIcon,
+  Refresh as RefreshIcon,
+  Visibility as ViewIcon
 } from "@mui/icons-material";
 import {
-    Autocomplete,
-    Box,
-    Button,
-    Chip,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    IconButton,
-    Paper,
-    Tab,
-    Tabs,
-    TextField,
-    Typography
+  Box,
+  IconButton,
+  Paper,
+  Typography
 } from "@mui/material";
 import {
-    DataGrid,
-    GridActionsCellItem,
-    GridToolbar,
-    type GridColDef,
+  DataGrid,
+  GridActionsCellItem,
+  GridToolbar,
+  type GridColDef,
 } from "@mui/x-data-grid";
-import {
-    useCreate,
-    useDelete,
-    useList,
-} from "@refinedev/core";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "../../hooks/useTranslation";
-import { DiffResult, Document } from "../../types/api";
+import { api } from "../../services/api";
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+interface ComparisonData {
+  id: number;
+  diffTitle: string;
+  diffType: string;
+  originalDocumentId?: number;
+  compareDocumentId?: number;
+  createdAt: string;
+  addedLines: number;
+  deletedLines: number;
+  modifiedLines: number;
+  diffData: {
+    statistics: {
+      similarity: number;
+      totalLines: number;
+      addedLines: number;
+      removedLines: number;
+      modifiedLines: number;
+    };
+  };
 }
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
+interface DocumentData {
+  id: number;
+  title: string;
 }
 
 export default function ComparisonsPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [openDialog, setOpenDialog] = useState(false);
-  const [viewingComparison, setViewingComparison] = useState<DiffResult | null>(null);
-  const [tabValue, setTabValue] = useState(0);
 
-  // Refine hooks
-  const { data: comparisonsData, isLoading, refetch } = useList<DiffResult>({
-    resource: "comparisons",
-    pagination: { current: 1, pageSize: 20 },
-    sorters: [{ field: "createdAt", order: "desc" }],
-  });
+  // State 관리
+  const [comparisons, setComparisons] = useState<ComparisonData[]>([]);
+  const [documents, setDocuments] = useState<DocumentData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { data: documentsData } = useList<Document>({
-    resource: "documents",
-    pagination: { current: 1, pageSize: 1000 }, // 모든 문서 가져오기
-  });
+  // 데이터 로드
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // 비교 결과와 문서 목록을 병렬로 로드
+      const [comparisonsResult, documentsResult] = await Promise.all([
+        api.compare.getDiffResultsRaw({
+          _start: 0,
+          _end: 100,
+          _sort: "createdAt",
+          _order: "desc",
+        }),
+        api.documents.getDocuments({
+          _start: 0,
+          _end: 1000,
+        })
+      ]);
 
-  const { mutate: createComparison } = useCreate();
-  const { mutate: deleteComparison } = useDelete();
-
-  // 폼 상태
-  const [documentCompareForm, setDocumentCompareForm] = useState({
-    originalDocumentId: null as number | null,
-    compareDocumentId: null as number | null,
-    diffTitle: "",
-  });
-
-  const [textCompareForm, setTextCompareForm] = useState({
-    originalText: "",
-    compareText: "",
-    diffTitle: "",
-  });
-
-  const handleOpenDialog = () => {
-    setDocumentCompareForm({
-      originalDocumentId: null,
-      compareDocumentId: null,
-      diffTitle: "",
-    });
-    setTextCompareForm({
-      originalText: "",
-      compareText: "",
-      diffTitle: "",
-    });
-    setTabValue(0);
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
-  const handleDocumentCompare = () => {
-    if (!documentCompareForm.originalDocumentId || !documentCompareForm.compareDocumentId) {
-      alert(t("messages.selectDocuments"));
-      return;
+      setComparisons(comparisonsResult.data);
+      setDocuments(documentsResult.data);
+    } catch (err: any) {
+      console.error('데이터 로드 실패:', err);
+      setError(err.message || '데이터를 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    createComparison({
-      resource: "comparisons",
-      values: {
-        ...documentCompareForm,
-        diffType: "text",
-      },
-    }, {
-      onSuccess: () => {
-        handleCloseDialog();
-        refetch();
-      },
-    });
-  };
+  // 초기 데이터 로드
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-  const handleTextCompare = () => {
-    if (!textCompareForm.originalText || !textCompareForm.compareText) {
-      alert(t("messages.enterTexts"));
-      return;
-    }
-
-    createComparison({
-      resource: "comparisons",
-      values: {
-        ...textCompareForm,
-        diffType: "text",
-      },
-    }, {
-      onSuccess: () => {
-        handleCloseDialog();
-        refetch();
-      },
-    });
-  };
-
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (confirm(t("messages.confirmDelete"))) {
-      deleteComparison({
-        resource: "comparisons",
-        id,
-      }, {
-        onSuccess: () => {
-          refetch();
-        },
-      });
+      try {
+        await api.compare.deleteDiffResult(id);
+        // 삭제 후 목록 새로고침
+        await loadData();
+      } catch (err: any) {
+        console.error('삭제 실패:', err);
+        alert('삭제에 실패했습니다.');
+      }
     }
   };
 
-  const handleView = (comparison: DiffResult) => {
+  const handleView = (comparison: ComparisonData) => {
     // 결과 전용 페이지로 이동
     router.push(`/compare/documents/${comparison.id}`);
   };
@@ -180,23 +115,28 @@ export default function ComparisonsPage() {
     const similarity = diffData?.statistics?.similarity || 0;
     
     if (similarity >= 90) {
-      return <Chip label={t("comparisons.veryHigh")} color="success" size="small" />;
+      return <span style={{ color: '#4caf50' }}>{t("comparisons.veryHigh")}</span>;
     } else if (similarity >= 70) {
-      return <Chip label={t("comparisons.high")} color="info" size="small" />;
+      return <span style={{ color: '#2196f3' }}>{t("comparisons.high")}</span>;
     } else if (similarity >= 50) {
-      return <Chip label={t("comparisons.medium")} color="warning" size="small" />;
+      return <span style={{ color: '#ff9800' }}>{t("comparisons.medium")}</span>;
     } else {
-      return <Chip label={t("comparisons.low")} color="error" size="small" />;
+      return <span style={{ color: '#f44336' }}>{t("comparisons.low")}</span>;
     }
   };
 
   const getDocumentTitle = (id?: number) => {
     if (!id) return "-";
-    const doc = documentsData?.data.find(d => d.id === id);
+    const doc = documents.find(d => d.id === id);
     return doc?.title || `Document #${id}`;
   };
 
   const columns: GridColDef[] = [
+    {
+      field: "id",
+      headerName: "ID",
+      width: 70,
+    },
     {
       field: "diffTitle",
       headerName: t("comparisons.title"),
@@ -249,30 +189,40 @@ export default function ComparisonsPage() {
     },
   ];
 
-  const documents = documentsData?.data || [];
+  if (error) {
+    return (
+      <Box sx={{ height: "100vh", width: "100%", p: 2 }}>
+        <Typography color="error" variant="h6">
+          오류: {error}
+        </Typography>
+        <Box sx={{ mt: 2 }}>
+          <IconButton onClick={loadData} color="primary">
+            <RefreshIcon />
+          </IconButton>
+          다시 시도
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ height: "100vh", width: "100%", p: 2 }}>
-      {/* 액션 바 */}
-      <Box sx={{ mb: 2, display: "flex", gap: 2, alignItems: "center" }}>
-        <IconButton onClick={() => refetch()} color="primary">
+      {/* 헤더 */}
+      <Box sx={{ mb: 2, display: "flex", gap: 2, alignItems: "center", justifyContent: "space-between" }}>
+        <Typography variant="h4">
+          저장된 비교 결과
+        </Typography>
+        <IconButton onClick={loadData} color="primary" title="새로고침">
           <RefreshIcon />
         </IconButton>
-        <Button
-          variant="contained"
-          startIcon={<CompareIcon />}
-          onClick={handleOpenDialog}
-        >
-          {t("comparisons.newComparison")}
-        </Button>
       </Box>
 
       {/* 데이터 그리드 */}
       <Paper sx={{ height: "calc(100vh - 150px)", width: "100%" }}>
         <DataGrid
-          rows={comparisonsData?.data || []}
+          rows={comparisons}
           columns={columns}
-          loading={isLoading}
+          loading={loading}
           pageSizeOptions={[10, 20, 50]}
           checkboxSelection
           disableRowSelectionOnClick
@@ -285,207 +235,6 @@ export default function ComparisonsPage() {
           }}
         />
       </Paper>
-
-      {/* 비교 생성 다이얼로그 */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {t("comparisons.newComparison")}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
-            <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
-              <Tab label={t("comparisons.documentCompare")} />
-              <Tab label={t("comparisons.textCompare")} />
-            </Tabs>
-          </Box>
-
-          <TabPanel value={tabValue} index={0}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <TextField
-                label={t("comparisons.title")}
-                value={documentCompareForm.diffTitle}
-                onChange={(e) => setDocumentCompareForm({ 
-                  ...documentCompareForm, 
-                  diffTitle: e.target.value 
-                })}
-                fullWidth
-                required
-              />
-              <Autocomplete
-                options={documents}
-                getOptionLabel={(option) => option.title}
-                renderInput={(params) => (
-                  <TextField {...params} label={t("comparisons.originalDocument")} required />
-                )}
-                value={documents.find(d => d.id === documentCompareForm.originalDocumentId) || null}
-                onChange={(e, value) => setDocumentCompareForm({
-                  ...documentCompareForm,
-                  originalDocumentId: value?.id || null
-                })}
-              />
-              <Autocomplete
-                options={documents}
-                getOptionLabel={(option) => option.title}
-                renderInput={(params) => (
-                  <TextField {...params} label={t("comparisons.compareDocument")} required />
-                )}
-                value={documents.find(d => d.id === documentCompareForm.compareDocumentId) || null}
-                onChange={(e, value) => setDocumentCompareForm({
-                  ...documentCompareForm,
-                  compareDocumentId: value?.id || null
-                })}
-              />
-            </Box>
-          </TabPanel>
-
-          <TabPanel value={tabValue} index={1}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <TextField
-                label={t("comparisons.title")}
-                value={textCompareForm.diffTitle}
-                onChange={(e) => setTextCompareForm({ 
-                  ...textCompareForm, 
-                  diffTitle: e.target.value 
-                })}
-                fullWidth
-                required
-              />
-              <TextField
-                label={t("comparisons.originalText")}
-                value={textCompareForm.originalText}
-                onChange={(e) => setTextCompareForm({ 
-                  ...textCompareForm, 
-                  originalText: e.target.value 
-                })}
-                fullWidth
-                multiline
-                rows={6}
-                required
-              />
-              <TextField
-                label={t("comparisons.compareText")}
-                value={textCompareForm.compareText}
-                onChange={(e) => setTextCompareForm({ 
-                  ...textCompareForm, 
-                  compareText: e.target.value 
-                })}
-                fullWidth
-                multiline
-                rows={6}
-                required
-              />
-            </Box>
-          </TabPanel>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>{t("actions.cancel")}</Button>
-          <Button 
-            onClick={tabValue === 0 ? handleDocumentCompare : handleTextCompare} 
-            variant="contained"
-          >
-            {t("comparisons.startComparison")}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* 비교 결과 보기 다이얼로그 */}
-      <Dialog 
-        open={!!viewingComparison} 
-        onClose={() => setViewingComparison(null)} 
-        maxWidth="lg" 
-        fullWidth
-      >
-        <DialogTitle>
-          {viewingComparison?.diffTitle}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-            {/* 비교 정보 */}
-            <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-              <Typography variant="body2">
-                {t("comparisons.originalDocument")}: {getDocumentTitle(viewingComparison?.originalDocumentId)}
-              </Typography>
-              <Typography variant="body2">
-                {t("comparisons.compareDocument")}: {getDocumentTitle(viewingComparison?.compareDocumentId)}
-              </Typography>
-            </Box>
-
-            {/* 통계 정보 */}
-            {viewingComparison?.diffData?.statistics && (
-              <Paper sx={{ p: 2, mb: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  {t("comparisons.statistics")}
-                </Typography>
-                <Box sx={{ display: "flex", gap: 3 }}>
-                  <Typography variant="body2">
-                    {t("comparisons.similarity")}: {viewingComparison.diffData.statistics.similarity}%
-                  </Typography>
-                  <Typography variant="body2">
-                    {t("comparisons.totalLines")}: {viewingComparison.diffData.statistics.totalLines}
-                  </Typography>
-                  <Typography variant="body2" color="success.main">
-                    +{viewingComparison.diffData.statistics.addedLines}
-                  </Typography>
-                  <Typography variant="body2" color="error.main">
-                    -{viewingComparison.diffData.statistics.removedLines}
-                  </Typography>
-                  <Typography variant="body2" color="warning.main">
-                    ~{viewingComparison.diffData.statistics.modifiedLines}
-                  </Typography>
-                </Box>
-              </Paper>
-            )}
-
-            {/* 변경 사항 */}
-            {viewingComparison?.diffData?.changes && (
-              <Paper sx={{ p: 2, maxHeight: 400, overflow: "auto" }}>
-                <Typography variant="h6" gutterBottom>
-                  {t("comparisons.changes")}
-                </Typography>
-                {viewingComparison.diffData.changes.map((change, index) => (
-                  <Box 
-                    key={index}
-                    sx={{ 
-                      p: 1, 
-                      mb: 1,
-                      bgcolor: change.type === 'added' ? 'success.light' : 
-                               change.type === 'removed' ? 'error.light' :
-                               change.type === 'modified' ? 'warning.light' : 'transparent',
-                      fontFamily: 'monospace',
-                      fontSize: '0.875rem',
-                      borderRadius: 1,
-                    }}
-                  >
-                    <Typography variant="caption" color="text.secondary">
-                      Line {change.lineNumber}: 
-                    </Typography>
-                    <Typography component="span" sx={{ ml: 1 }}>
-                      {change.content}
-                    </Typography>
-                  </Box>
-                ))}
-              </Paper>
-            )}
-
-            {/* 요약 */}
-            {viewingComparison?.diffData?.summary && (
-              <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>
-                  {t("comparisons.summary")}
-                </Typography>
-                <Typography variant="body2">
-                  {viewingComparison.diffData.summary}
-                </Typography>
-              </Paper>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setViewingComparison(null)}>
-            {t("actions.close")}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 } 

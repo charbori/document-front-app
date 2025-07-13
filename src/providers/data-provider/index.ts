@@ -44,7 +44,7 @@ export const dataProvider: DataProvider = {
           _order: sorters?.[0]?.order || "desc",
         };
 
-        const response = await api.compare.getDiffResults(params);
+        const response = await api.compare.getDiffResultsRaw(params);
         return {
           data: response.data as any[],
           total: response.total,
@@ -67,8 +67,14 @@ export const dataProvider: DataProvider = {
       }
 
       if (resource === "comparisons") {
-        const data = await api.compare.getDiffResult(Number(id));
-        return { data: data as any };
+        try {
+          const data = await api.compare.getDiffResult(Number(id));
+          return { data: data as any };
+        } catch (error: any) {
+          console.error(`Error fetching comparison ${id}:`, error);
+          // 에러가 발생해도 기본 구조 반환
+          throw error;
+        }
       }
 
       throw new Error(`Resource ${resource} not supported`);

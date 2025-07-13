@@ -268,7 +268,7 @@ export const compareApi = {
     return transformBackendDiffResult(response.data);
   },
 
-  // Diff 결과 목록 조회
+  // Diff 결과 목록 조회 (변환 적용)
   getDiffResults: async (params: DiffResultsQueryParams = {}): Promise<PaginatedResponse<DiffResult>> => {
     const response: AxiosResponse<BackendDiffResult[]> = await apiClient.get('/results', { params });
     
@@ -282,6 +282,57 @@ export const compareApi = {
       page: Math.floor(start / (end - start)) + 1,
       limit: end - start,
     };
+  },
+
+  // Diff 결과 목록 조회 (원본 데이터, /comparisons 페이지용)
+  getDiffResultsRaw: async (params: DiffResultsQueryParams = {}): Promise<PaginatedResponse<any>> => {
+    try {
+      const response: AxiosResponse<any[]> = await apiClient.get('/results', { params });
+      
+      const total = parseInt(response.headers['x-total-count'] || '0');
+      const start = params._start || 0;
+      const end = params._end || 10;
+      
+      // 백엔드 데이터를 최소한의 변환만 적용
+      const processedData = response.data.map((item: any) => ({
+        id: item.id,
+        diffTitle: item.diffTitle,
+        diffType: item.diffType,
+        originalDocumentId: item.originalDocument?.id,
+        compareDocumentId: item.compareDocument?.id,
+        createdAt: item.createdAt,
+        addedLines: item.addedLines || 0,
+        deletedLines: item.deletedLines || 0,
+        modifiedLines: item.modifiedLines || 0,
+        // 간단한 통계만 제공
+        diffData: {
+          statistics: {
+            similarity: item.addedLines === 0 && item.deletedLines === 0 && item.modifiedLines === 0 ? 100 : 
+                       Math.max(0, 100 - ((item.addedLines + item.deletedLines + item.modifiedLines) * 10)),
+            totalLines: (item.addedLines || 0) + (item.deletedLines || 0) + (item.modifiedLines || 0),
+            addedLines: item.addedLines || 0,
+            removedLines: item.deletedLines || 0,
+            modifiedLines: item.modifiedLines || 0,
+          }
+        }
+      }));
+      
+      return {
+        data: processedData,
+        total,
+        page: Math.floor(start / (end - start)) + 1,
+        limit: end - start,
+      };
+    } catch (error: any) {
+      console.error('getDiffResultsRaw 에러:', error);
+      // 에러가 발생해도 빈 결과 반환
+      return {
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+      };
+    }
   },
 
   // 특정 Diff 결과 조회
