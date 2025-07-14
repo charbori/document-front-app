@@ -30,7 +30,6 @@ const apiClient = axios.create({
 
 // 백엔드 응답을 프론트엔드 형식으로 변환하는 핸들러
 const transformBackendDiffResult = (backendResult: BackendDiffResult): DiffResult => {
-  console.log('백엔드 응답 변환 시작:', backendResult);
 
   // diffResult 문자열을 라인별로 분할하여 DiffChange 배열로 변환
   const diffLines = backendResult.diffResult.split('\n');
@@ -114,7 +113,6 @@ const transformBackendDiffResult = (backendResult: BackendDiffResult): DiffResul
     modifiedLines: 0,
   };
 
-  console.log('변환된 프론트엔드 결과:', frontendResult);
   return frontendResult;
 };
 
