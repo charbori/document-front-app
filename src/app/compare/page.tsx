@@ -344,8 +344,6 @@ export default function ComparePage() {
             if (result.id) {
                 router.push(`/compare/documents/${result.id}`);
             }
-            
-            console.log('저장된 비교 결과:', result);
         } catch (error: any) {
             console.error('비교 결과 저장 중 오류:', error);
             setSnackbarMessage(error.message || '비교 결과 저장에 실패했습니다.');
