@@ -29,7 +29,7 @@ import {
   DataGrid,
   GridActionsCellItem,
   GridToolbar,
-  type GridColDef,
+  type GridColDef
 } from "@mui/x-data-grid";
 import {
   useCreate,
@@ -295,7 +295,6 @@ export default function DocumentsPage() {
           {t("actions.add")}
         </Button>
       </Box>
-
       {/* 데이터 그리드 */}
       <Paper sx={{ height: "calc(100vh - 150px)", width: "100%" }}>
         {!isLoading && (!documentsData?.data || documentsData.data.length === 0) ? (
