@@ -258,8 +258,8 @@ export const compareApi = {
     });
 
     const response: AxiosResponse<BackendDiffResult> = await apiClient.post('/compare',{
-      originalDocumentId: originalDocument.data,
-      compareDocumentId: compareDocument.data,
+      originalDocumentId: originalDocument.id,
+      compareDocumentId: compareDocument.id,
       diffTitle: data.diffTitle,
       diffType: 'text',
     });

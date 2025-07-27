@@ -334,13 +334,9 @@ export default function ComparisonResultPage({
                 });
                 
                 // 사이드 바이 사이드용 데이터
-                if (change.type === 'added' || change.type === 'modified') {
+                if (change.type === 'added') {
                     sideByResult.push({
-                        leftLine: change.type === 'modified' ? {
-                            content: change.content,
-                            lineNumber: change.originalLine || change.lineNumber,
-                            hasChange: true
-                        } : null,
+                        leftLine: null,
                         rightLine: {
                             content: change.content,
                             lineNumber: change.compareLine || change.lineNumber,

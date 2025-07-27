@@ -13,7 +13,7 @@ export default async function UpdatePassword() {
 }
 
 async function getData() {
-    const { authenticated, redirectTo, error } =
+    const { authenticated, redirectTo } =
         await authProviderServer.check();
 
     return {

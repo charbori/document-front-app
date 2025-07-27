@@ -13,11 +13,10 @@ export default async function Register() {
 }
 
 async function getData() {
-  const { authenticated, redirectTo, error } = await authProviderServer.check();
+  const { authenticated, redirectTo } = await authProviderServer.check();
 
   return {
     authenticated,
     redirectTo,
-    error,
   };
 }

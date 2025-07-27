@@ -27,7 +27,7 @@ import { VideoModal } from "../../components/video/videoUploaderModal";
 
 import { VideoDrawerShow } from "../../components/video/videoDrawer";
 import { IVideo, Nullable } from "../../interfaces/theme";
-export const getUtcDateIgnoreTz = (value) => {
+export const getUtcDateIgnoreTz = (value: any) => {
     const localDate = new Date(value.row.createdAt);
     return localDate;
 };
