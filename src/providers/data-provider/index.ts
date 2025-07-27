@@ -5,7 +5,7 @@ import { api } from "../../services/api";
 
 // 커스텀 데이터 프로바이더 구현
 export const dataProvider: DataProvider = {
-  getApiUrl: () => "http://localhost:8080/api/diff",
+  getApiUrl: () => "/api/diff",
 
   // 리스트 조회
   getList: async ({ resource, pagination, sorters, filters }) => {

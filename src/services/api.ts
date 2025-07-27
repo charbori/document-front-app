@@ -1,23 +1,23 @@
 import axios, { AxiosResponse } from 'axios';
 import {
-  ApiError,
-  BackendDiffResult,
-  CompareDocumentsRequest,
-  CompareTextRequest,
-  CreateDocumentRequest,
-  DiffChange,
-  DiffData,
-  DiffResult,
-  DiffResultsQueryParams,
-  DiffStatistics,
-  Document,
-  DocumentsQueryParams,
-  PaginatedResponse,
-  UpdateDocumentRequest
+    ApiError,
+    BackendDiffResult,
+    CompareDocumentsRequest,
+    CompareTextRequest,
+    CreateDocumentRequest,
+    DiffChange,
+    DiffData,
+    DiffResult,
+    DiffResultsQueryParams,
+    DiffStatistics,
+    Document,
+    DocumentsQueryParams,
+    PaginatedResponse,
+    UpdateDocumentRequest
 } from '../types/api';
 
 // API 기본 설정
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 const API_PREFIX = '/api/diff';
 
 // Axios 인스턴스 생성
