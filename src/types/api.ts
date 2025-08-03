@@ -29,6 +29,12 @@ export interface Document {
   size?: number;
 }
 
+// 문서 관련 타입
+export interface CreateDocumentResponse {
+  data: number;
+  messge: string;
+}
+
 export interface CreateDocumentRequest {
   title: string;
   content: string;

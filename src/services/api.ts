@@ -1,19 +1,20 @@
 import axios, { AxiosResponse } from 'axios';
 import {
-    ApiError,
-    BackendDiffResult,
-    CompareDocumentsRequest,
-    CompareTextRequest,
-    CreateDocumentRequest,
-    DiffChange,
-    DiffData,
-    DiffResult,
-    DiffResultsQueryParams,
-    DiffStatistics,
-    Document,
-    DocumentsQueryParams,
-    PaginatedResponse,
-    UpdateDocumentRequest
+  ApiError,
+  BackendDiffResult,
+  CompareDocumentsRequest,
+  CompareTextRequest,
+  CreateDocumentRequest,
+  CreateDocumentResponse,
+  DiffChange,
+  DiffData,
+  DiffResult,
+  DiffResultsQueryParams,
+  DiffStatistics,
+  Document,
+  DocumentsQueryParams,
+  PaginatedResponse,
+  UpdateDocumentRequest
 } from '../types/api';
 
 // API 기본 설정
@@ -191,8 +192,8 @@ export const documentApi = {
   },
 
   // 문서 생성
-  createDocument: async (data: CreateDocumentRequest): Promise<Document> => {
-    const response: AxiosResponse<Document> = await apiClient.post('/document', data);
+  createDocument: async (data: CreateDocumentRequest): Promise<CreateDocumentResponse> => {
+    const response: AxiosResponse<CreateDocumentResponse> = await apiClient.post('/document', data);
     return response.data;
   },
 
@@ -257,9 +258,13 @@ export const compareApi = {
       version: '1.0',
     });
 
+
+console.log(originalDocument);
+console.log(compareDocument);
+
     const response: AxiosResponse<BackendDiffResult> = await apiClient.post('/compare',{
-      originalDocumentId: originalDocument.id,
-      compareDocumentId: compareDocument.id,
+      originalDocumentId: originalDocument.data,
+      compareDocumentId: compareDocument.data,
       diffTitle: data.diffTitle,
       diffType: 'text',
     });
