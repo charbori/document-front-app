@@ -27,6 +27,10 @@ NODE_ENV=production // 운영
 3. 테스트 계정으로 로그인 또는 실제 계정 입력
 4. 로그인 성공 시 JWT 토큰이 쿠키에 자동 저장됨
 
+
+## 현재 운영서비스
+* https://couhensoft.com/compare
+
 ### 로그인 쿠키 관련 
 - **쿠키명**: `auth`
 - **유효기간**: 30일
